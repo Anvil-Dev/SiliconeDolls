@@ -1,0 +1,4 @@
+dependencies {
+    // Rolling Gate
+    implementation "dev.anvilcraft.rg:RollingGate:${rolling_gate_version}"
+}
