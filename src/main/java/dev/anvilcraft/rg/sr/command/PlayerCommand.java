@@ -71,9 +71,16 @@ public class PlayerCommand {
                         )
                         .then(
                             Commands.literal("kill")
+                                .executes(PlayerCommand::kill)
                         )
                         .then(
                             Commands.literal("jump")
+                        )
+                        .then(
+                            Commands.literal("use")
+                        )
+                        .then(
+                            Commands.literal("attack")
                         )
                         .then(
                             Commands.literal("sneak")
@@ -82,10 +89,22 @@ public class PlayerCommand {
                             Commands.literal("unsneak")
                         )
                         .then(
+                            Commands.literal("sprint")
+                        )
+                        .then(
+                            Commands.literal("unsprint")
+                        )
+                        .then(
                             Commands.literal("swapHands")
                         )
                         .then(
                             Commands.literal("look")
+                        )
+                        .then(
+                            Commands.literal("turn")
+                        )
+                        .then(
+                            Commands.literal("move")
                         )
                         .then(
                             Commands.literal("hotbar")
@@ -99,6 +118,12 @@ public class PlayerCommand {
                         .then(
                             Commands.literal("shadow")
                                 .executes(PlayerCommand::shadowPlayer)
+                        )
+                        .then(
+                            Commands.literal("mount")
+                        )
+                        .then(
+                            Commands.literal("dismount")
                         )
                         .then(
                             Commands.literal("stop")
@@ -166,17 +191,36 @@ public class PlayerCommand {
     }
 
     public static int shadowPlayer(@NotNull CommandContext<CommandSourceStack> context) {
+        ServerPlayer player = isFakePlayerValid(context);
+        if (player == null) return 0;
+        FakePlayer.createShadow(player);
+        return 1;
+    }
+
+    public static int kill(@NotNull CommandContext<CommandSourceStack> context) {
+        ServerPlayer player = isFakePlayerValid(context);
+        if (player == null) return 0;
+        if (player instanceof FakePlayer fakePlayer) {
+            fakePlayer.kill();
+            return 1;
+        } else {
+            context.getSource().sendFailure(Component.literal("Player " + player.getName().getString() + " is not a SiliconeRubber").withStyle(ChatFormatting.RED));
+            return 0;
+        }
+    }
+
+    private static ServerPlayer isFakePlayerValid(@NotNull CommandContext<CommandSourceStack> context) {
         String name = ModCommands.getArg(context, "name", StringArgumentType::getString);
         if (name == null) {
             context.getSource().sendFailure(Component.literal("Invalid player name").withStyle(ChatFormatting.RED));
-            return 0;
+            return null;
         }
-        ServerPlayer player = context.getSource().getServer().getPlayerList().getPlayerByName(name);
-        if (player == null) {
+        PlayerList playerList = context.getSource().getServer().getPlayerList();
+        ServerPlayer playerByName = playerList.getPlayerByName(name);
+        if (playerByName == null) {
             context.getSource().sendFailure(Component.literal("Player not found").withStyle(ChatFormatting.RED));
-            return 0;
+            return null;
         }
-        FakePlayer.createShadow(player);
-        return 1;
+        return playerByName;
     }
 }

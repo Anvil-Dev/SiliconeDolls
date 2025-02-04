@@ -120,7 +120,7 @@ public class FakePlayer extends ServerPlayer {
         playerShadow.setHealth(player.getHealth());
         playerShadow.connection.teleport(player.getX(), player.getY(), player.getZ(), player.getYRot(), player.getXRot());
         playerShadow.gameMode.changeGameModeForPlayer(player.gameMode.getGameModeForPlayer());
-        ((ServerPlayerInjector) playerShadow).getActionPack().copyFrom(((ServerPlayerInjector) player).getActionPack());
+        ((ServerPlayerInjector) playerShadow).getActions().copyFrom(((ServerPlayerInjector) player).getActions());
         AttributeInstance attribute = playerShadow.getAttribute(Attributes.STEP_HEIGHT);
         if (attribute != null) attribute.setBaseValue(0.6F);
         playerShadow.entityData.set(DATA_PLAYER_MODE_CUSTOMISATION, player.getEntityData().get(DATA_PLAYER_MODE_CUSTOMISATION));
@@ -221,4 +221,5 @@ public class FakePlayer extends ServerPlayer {
         }
         return connection.player;
     }
+
 }
