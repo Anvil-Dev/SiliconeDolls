@@ -5,6 +5,9 @@
   "compatibilityLevel": "JAVA_8",
   "refmap": "silicone_rubber.refmap.json",
   "mixins": [
+    "ConnectionMixin",
+    "PlayerListMixin",
+    "ServerPlayerMixin"
   ],
   "client": [
   ],
