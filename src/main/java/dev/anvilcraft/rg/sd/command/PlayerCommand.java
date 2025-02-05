@@ -1,18 +1,24 @@
 package dev.anvilcraft.rg.sd.command;
 
 import com.mojang.brigadier.CommandDispatcher;
+import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.suggestion.SuggestionProvider;
+import com.mojang.brigadier.suggestion.Suggestions;
+import com.mojang.brigadier.suggestion.SuggestionsBuilder;
 import dev.anvilcraft.rg.api.server.TranslationUtil;
 import dev.anvilcraft.rg.sd.SiliconeDollsServerRules;
 import dev.anvilcraft.rg.sd.entity.FakePlayer;
+import dev.anvilcraft.rg.sd.entity.PlayerActionPack;
 import dev.anvilcraft.rg.sd.init.ModCommands;
 import dev.anvilcraft.rg.sd.util.CommandRuleValidator;
+import dev.anvilcraft.rg.sd.util.ServerPlayerInjector;
 import net.minecraft.ChatFormatting;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
+import net.minecraft.commands.SharedSuggestionProvider;
 import net.minecraft.commands.arguments.DimensionArgument;
 import net.minecraft.commands.arguments.GameModeArgument;
 import net.minecraft.commands.arguments.coordinates.Coordinates;
@@ -30,6 +36,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 public class PlayerCommand {
     public static void register(@NotNull CommandDispatcher<CommandSourceStack> dispatcher) {
@@ -76,13 +83,19 @@ public class PlayerCommand {
                                 .executes(PlayerCommand::kill)
                         )
                         .then(
-                            Commands.literal("jump")
-                        )
-                        .then(
-                            Commands.literal("use")
-                        )
-                        .then(
-                            Commands.literal("attack")
+                            //use, jump, attack
+                            Commands.argument("action", StringArgumentType.word())
+                                .suggests(PlayerCommand::suggestAction)
+                                .executes(ctx -> actions(ctx, "once"))
+                                .then(Commands.literal("once").executes(ctx -> actions(ctx, "once")))
+                                .then(Commands.literal("continue").executes(ctx -> actions(ctx, "continues")))
+                                .then(
+                                    Commands.literal("interval")
+                                        .then(
+                                            Commands.argument("time", IntegerArgumentType.integer(1))
+                                                .executes(ctx -> actions(ctx, "interval"))
+                                        )
+                                )
                         )
                         .then(
                             Commands.literal("sneak")
@@ -134,13 +147,17 @@ public class PlayerCommand {
         );
     }
 
-    public static @NotNull SuggestionProvider<CommandSourceStack> suggestPlayer() {
+    private static @NotNull SuggestionProvider<CommandSourceStack> suggestPlayer() {
         return (context, builder) -> {
             List<String> players = new ArrayList<>(context.getSource().getOnlinePlayerNames());
             players.add("Alex");
             players.add("Steve");
             return ModCommands.suggest(players).getSuggestions(context, builder);
         };
+    }
+
+    private static @NotNull CompletableFuture<Suggestions> suggestAction(final CommandContext<CommandSourceStack> context, final SuggestionsBuilder builder) {
+        return SharedSuggestionProvider.suggest(new String[]{"jump", "use", "attack"}, builder);
     }
 
     public static int spawnPlayer(@NotNull CommandContext<CommandSourceStack> context) {
@@ -197,25 +214,52 @@ public class PlayerCommand {
     }
 
     public static int shadowPlayer(@NotNull CommandContext<CommandSourceStack> context) {
-        ServerPlayer player = isFakePlayerValid(context);
+        ServerPlayer player = isThereFakePlayer(context);
         if (player == null) return 0;
         FakePlayer.createShadow(player);
         return 1;
     }
 
     public static int kill(@NotNull CommandContext<CommandSourceStack> context) {
-        ServerPlayer player = isFakePlayerValid(context);
+        FakePlayer player = isFakePlayerValid(context);
         if (player == null) return 0;
-        if (player instanceof FakePlayer fakePlayer) {
-            fakePlayer.kill();
+        player.kill();
+        return 1;
+    }
+
+    public static int actions(@NotNull CommandContext<CommandSourceStack> context, String interval) {
+        FakePlayer player = isFakePlayerValid(context);
+        if (player == null) return 0;
+        String action = ModCommands.getArg(context, "action", StringArgumentType::getString);
+        if (action == null) {
+            context.getSource().sendFailure(TranslationUtil.trans("silicone_dolls.commands.tips.none_action").withStyle(ChatFormatting.RED));
+            return 0;
+        }
+        PlayerActionPack actionPack = ((ServerPlayerInjector) player).getActionPack();
+        if (action.equals("jump") || action.equals("use") || action.equals("attack")) {
+            if (interval.equals("interval")) {
+                int time;
+                try {
+                    time = IntegerArgumentType.getInteger(context, "time");
+                } catch (IllegalArgumentException ignored) {
+                    context.getSource().sendFailure(TranslationUtil.trans("silicone_dolls.commands.tips.invalid_interval").withStyle(ChatFormatting.RED));
+                    return 0;
+                }
+                actionPack.start(getAction(action), PlayerActionPack.Action.interval(time));
+            } else if (interval.equals("continues")) {
+                actionPack.start(getAction(action), PlayerActionPack.Action.continuous());
+            } else {
+                actionPack.start(getAction(action), PlayerActionPack.Action.once());
+            }
             return 1;
         } else {
-            context.getSource().sendFailure(TranslationUtil.trans("silicone_dolls.commands.tips.not_fake", player.getName().getString()).withStyle(ChatFormatting.RED));
+            context.getSource().sendFailure(TranslationUtil.trans("silicone_dolls.commands.tips.invalid_action").withStyle(ChatFormatting.RED));
             return 0;
         }
     }
 
-    private static @Nullable ServerPlayer isFakePlayerValid(@NotNull CommandContext<CommandSourceStack> context) {
+
+    private static @Nullable ServerPlayer isThereFakePlayer(@NotNull CommandContext<CommandSourceStack> context) {
         String name = ModCommands.getArg(context, "name", StringArgumentType::getString);
         if (name == null) {
             context.getSource().sendFailure(TranslationUtil.trans("silicone_dolls.commands.tips.invalid_name").withStyle(ChatFormatting.RED));
@@ -228,5 +272,24 @@ public class PlayerCommand {
             return null;
         }
         return playerByName;
+    }
+
+    private static @Nullable FakePlayer isFakePlayerValid(@NotNull CommandContext<CommandSourceStack> context) {
+        ServerPlayer player = isThereFakePlayer(context);
+        if (player == null) return null;
+        if (player instanceof FakePlayer fakePlayer) return fakePlayer;
+        context.getSource().sendFailure(TranslationUtil.trans("silicone_dolls.commands.tips.not_silicone_dolls", player.getName().getString()).withStyle(ChatFormatting.RED));
+        return null;
+    }
+
+    public static PlayerActionPack.ActionType getAction(String name) {
+        return switch (name) {
+            case "use" -> PlayerActionPack.ActionType.USE;
+            case "attack" -> PlayerActionPack.ActionType. ATTACK;
+            case "jump" -> PlayerActionPack.ActionType.JUMP;
+            case "drop_item" -> PlayerActionPack.ActionType.DROP_ITEM;
+            case "drop_stack" -> PlayerActionPack.ActionType.DROP_STACK;
+            case null, default -> null;
+        };
     }
 }
