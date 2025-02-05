@@ -1,4 +1,4 @@
-package dev.anvilcraft.rg.sr.util;
+package dev.anvilcraft.rg.sd.util;
 
 import io.netty.channel.Channel;
 

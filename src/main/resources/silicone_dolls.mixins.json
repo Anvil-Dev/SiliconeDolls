@@ -1,13 +1,14 @@
 {
   "required": true,
   "minVersion": "0.8",
-  "package": "dev.anvilcraft.rg.sr.mixin",
+  "package": "dev.anvilcraft.rg.sd.mixin",
   "compatibilityLevel": "JAVA_8",
   "refmap": "silicone_rubber.refmap.json",
   "mixins": [
     "ConnectionMixin",
     "PlayerListMixin",
-    "ServerPlayerMixin"
+    "ServerPlayerMixin",
+    "kubejs.PacketDistributorMixin"
   ],
   "client": [
   ],

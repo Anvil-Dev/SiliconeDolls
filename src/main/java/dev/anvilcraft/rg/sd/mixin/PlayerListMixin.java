@@ -1,6 +1,6 @@
-package dev.anvilcraft.rg.sr.mixin;
+package dev.anvilcraft.rg.sd.mixin;
 
-import dev.anvilcraft.rg.sr.entity.FakePlayer;
+import dev.anvilcraft.rg.sd.entity.FakePlayer;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.players.PlayerList;

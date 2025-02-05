@@ -1,8 +1,8 @@
-package dev.anvilcraft.rg.sr.mixin;
+package dev.anvilcraft.rg.sd.mixin;
 
 import com.mojang.authlib.GameProfile;
-import dev.anvilcraft.rg.sr.entity.PlayerActionPack;
-import dev.anvilcraft.rg.sr.util.ServerPlayerInjector;
+import dev.anvilcraft.rg.sd.entity.PlayerActionPack;
+import dev.anvilcraft.rg.sd.util.ServerPlayerInjector;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ClientInformation;
 import net.minecraft.server.level.ServerLevel;

@@ -1,6 +1,6 @@
-package dev.anvilcraft.rg.sr.entity;
+package dev.anvilcraft.rg.sd.entity;
 
-import dev.anvilcraft.rg.sr.util.ConnectionInjector;
+import dev.anvilcraft.rg.sd.util.ConnectionInjector;
 import io.netty.channel.embedded.EmbeddedChannel;
 import net.minecraft.network.Connection;
 import net.minecraft.network.PacketListener;

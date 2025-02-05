@@ -1,9 +1,9 @@
-package dev.anvilcraft.rg.sr.init;
+package dev.anvilcraft.rg.sd.init;
 
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.suggestion.SuggestionProvider;
-import dev.anvilcraft.rg.sr.command.PlayerCommand;
+import dev.anvilcraft.rg.sd.command.PlayerCommand;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.SharedSuggestionProvider;
 import org.jetbrains.annotations.NotNull;

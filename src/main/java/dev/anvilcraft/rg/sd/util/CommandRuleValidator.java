@@ -1,4 +1,4 @@
-package dev.anvilcraft.rg.sr.util;
+package dev.anvilcraft.rg.sd.util;
 
 import dev.anvilcraft.rg.api.RGValidator;
 import net.minecraft.commands.CommandSourceStack;

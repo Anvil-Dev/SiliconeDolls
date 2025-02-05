@@ -1,8 +1,8 @@
-package dev.anvilcraft.rg.sr.entity;
+package dev.anvilcraft.rg.sd.entity;
 
 import com.mojang.authlib.GameProfile;
-import dev.anvilcraft.rg.sr.SiliconeDollsServerRules;
-import dev.anvilcraft.rg.sr.util.ServerPlayerInjector;
+import dev.anvilcraft.rg.sd.SiliconeDollsServerRules;
+import dev.anvilcraft.rg.sd.util.ServerPlayerInjector;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.UUIDUtil;
 import net.minecraft.network.DisconnectionDetails;

@@ -1,8 +1,8 @@
-package dev.anvilcraft.rg.sr;
+package dev.anvilcraft.rg.sd;
 
 import dev.anvilcraft.rg.api.RGValidator;
 import dev.anvilcraft.rg.api.Rule;
-import dev.anvilcraft.rg.sr.util.CommandRuleValidator;
+import dev.anvilcraft.rg.sd.util.CommandRuleValidator;
 
 public class SiliconeDollsServerRules {
 

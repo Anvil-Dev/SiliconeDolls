@@ -1,7 +1,7 @@
-package dev.anvilcraft.rg.sr.entity;
+package dev.anvilcraft.rg.sd.entity;
 
-import dev.anvilcraft.rg.sr.util.ServerPlayerInjector;
-import dev.anvilcraft.rg.sr.util.Tracer;
+import dev.anvilcraft.rg.sd.util.ServerPlayerInjector;
+import dev.anvilcraft.rg.sd.util.Tracer;
 import net.minecraft.commands.arguments.EntityAnchorArgument;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;

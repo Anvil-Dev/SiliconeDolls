@@ -1,7 +1,7 @@
-package dev.anvilcraft.rg.sr;
+package dev.anvilcraft.rg.sd;
 
 import com.mojang.logging.LogUtils;
-import dev.anvilcraft.rg.sr.init.ModCommands;
+import dev.anvilcraft.rg.sd.init.ModCommands;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;

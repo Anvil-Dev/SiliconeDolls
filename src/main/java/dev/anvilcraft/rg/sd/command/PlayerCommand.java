@@ -1,14 +1,14 @@
-package dev.anvilcraft.rg.sr.command;
+package dev.anvilcraft.rg.sd.command;
 
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.suggestion.SuggestionProvider;
-import dev.anvilcraft.rg.sr.SiliconeDollsServerRules;
-import dev.anvilcraft.rg.sr.entity.FakePlayer;
-import dev.anvilcraft.rg.sr.init.ModCommands;
-import dev.anvilcraft.rg.sr.util.CommandRuleValidator;
+import dev.anvilcraft.rg.sd.SiliconeDollsServerRules;
+import dev.anvilcraft.rg.sd.entity.FakePlayer;
+import dev.anvilcraft.rg.sd.init.ModCommands;
+import dev.anvilcraft.rg.sd.util.CommandRuleValidator;
 import net.minecraft.ChatFormatting;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;

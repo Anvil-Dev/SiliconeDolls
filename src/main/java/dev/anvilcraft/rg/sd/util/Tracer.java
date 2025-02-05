@@ -1,4 +1,4 @@
-package dev.anvilcraft.rg.sr.util;
+package dev.anvilcraft.rg.sd.util;
 
 import java.util.Optional;
 import java.util.function.Predicate;

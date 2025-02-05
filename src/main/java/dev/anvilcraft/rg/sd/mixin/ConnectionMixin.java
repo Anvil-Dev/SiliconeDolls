@@ -1,6 +1,6 @@
-package dev.anvilcraft.rg.sr.mixin;
+package dev.anvilcraft.rg.sd.mixin;
 
-import dev.anvilcraft.rg.sr.util.ConnectionInjector;
+import dev.anvilcraft.rg.sd.util.ConnectionInjector;
 import io.netty.channel.Channel;
 import net.minecraft.network.Connection;
 import org.spongepowered.asm.mixin.Mixin;

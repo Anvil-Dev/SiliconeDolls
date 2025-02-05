@@ -1,4 +1,7 @@
 dependencies {
     // Rolling Gate
     implementation "dev.anvilcraft.rg:RollingGate:${rolling_gate_version}"
+    implementation("dev.latvian.mods:kubejs-neoforge:${kubejs_version}"){ transitive = false }
+    implementation("dev.latvian.mods:rhino:${rhino_version}"){ transitive = false }
+    implementation "top.theillusivec4.curios:curios-neoforge:${curios_version}"
 }

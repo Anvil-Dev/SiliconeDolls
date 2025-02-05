@@ -15,10 +15,6 @@ repositories {
             includeGroup "maven.modrinth"
         }
     }
-    maven { // AnvilLib、AnvilCraft
-        name = "Cjsah Maven"
-        url = "https://server.cjsah.net:1002/maven/"
-    }
     maven { // Mod Menu, EMI
         name = "TerraformersMC Maven"
         url = "https://maven.terraformersmc.com/releases/"
@@ -57,5 +53,9 @@ repositories {
     }
     maven {
         url "https://maven.su5ed.dev/releases"
+    }
+    maven { // AnvilLib、AnvilCraft
+        name = "Cjsah Maven"
+        url = "https://server.cjsah.net:1002/maven/"
     }
 }
