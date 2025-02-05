@@ -99,9 +99,11 @@ public class PlayerCommand {
                         )
                         .then(
                             Commands.literal("sneak")
+                                .executes(ctx-> sneak(ctx,true))
                         )
                         .then(
                             Commands.literal("unsneak")
+                                .executes(ctx-> sneak(ctx,false))
                         )
                         .then(
                             Commands.literal("sprint")
@@ -228,15 +230,14 @@ public class PlayerCommand {
     }
 
     public static int actions(@NotNull CommandContext<CommandSourceStack> context, String interval) {
-        FakePlayer player = isFakePlayerValid(context);
-        if (player == null) return 0;
         String action = ModCommands.getArg(context, "action", StringArgumentType::getString);
         if (action == null) {
-            context.getSource().sendFailure(TranslationUtil.trans("silicone_dolls.commands.tips.none_action").withStyle(ChatFormatting.RED));
             return 0;
         }
-        PlayerActionPack actionPack = ((ServerPlayerInjector) player).getActionPack();
         if (action.equals("jump") || action.equals("use") || action.equals("attack")) {
+            FakePlayer player = isFakePlayerValid(context);
+            if (player == null) return 0;
+            PlayerActionPack actionPack = ((ServerPlayerInjector) player).getActionPack();
             if (interval.equals("interval")) {
                 int time;
                 try {
@@ -253,11 +254,18 @@ public class PlayerCommand {
             }
             return 1;
         } else {
-            context.getSource().sendFailure(TranslationUtil.trans("silicone_dolls.commands.tips.invalid_action").withStyle(ChatFormatting.RED));
+            context.getSource().sendFailure(TranslationUtil.trans("silicone_dolls.commands.tips.invalid_command").withStyle(ChatFormatting.RED));
             return 0;
         }
     }
 
+    public static int sneak(@NotNull CommandContext<CommandSourceStack> context,boolean doSneak) {
+        FakePlayer player = isFakePlayerValid(context);
+        if (player == null) return 0;
+        PlayerActionPack actionPack = ((ServerPlayerInjector) player).getActionPack();
+        actionPack.setSneaking(doSneak);
+        return 1;
+    }
 
     private static @Nullable ServerPlayer isThereFakePlayer(@NotNull CommandContext<CommandSourceStack> context) {
         String name = ModCommands.getArg(context, "name", StringArgumentType::getString);
@@ -285,7 +293,7 @@ public class PlayerCommand {
     public static PlayerActionPack.ActionType getAction(String name) {
         return switch (name) {
             case "use" -> PlayerActionPack.ActionType.USE;
-            case "attack" -> PlayerActionPack.ActionType. ATTACK;
+            case "attack" -> PlayerActionPack.ActionType.ATTACK;
             case "jump" -> PlayerActionPack.ActionType.JUMP;
             case "drop_item" -> PlayerActionPack.ActionType.DROP_ITEM;
             case "drop_stack" -> PlayerActionPack.ActionType.DROP_STACK;
