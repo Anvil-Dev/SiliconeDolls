@@ -5,6 +5,7 @@ import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.suggestion.SuggestionProvider;
+import dev.anvilcraft.rg.api.server.TranslationUtil;
 import dev.anvilcraft.rg.sd.SiliconeDollsServerRules;
 import dev.anvilcraft.rg.sd.entity.FakePlayer;
 import dev.anvilcraft.rg.sd.init.ModCommands;
@@ -14,9 +15,9 @@ import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.arguments.DimensionArgument;
 import net.minecraft.commands.arguments.GameModeArgument;
-import net.minecraft.commands.arguments.coordinates.Vec2Argument;
+import net.minecraft.commands.arguments.coordinates.Coordinates;
+import net.minecraft.commands.arguments.coordinates.RotationArgument;
 import net.minecraft.commands.arguments.coordinates.Vec3Argument;
-import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -25,6 +26,7 @@ import net.minecraft.world.level.GameType;
 import net.minecraft.world.phys.Vec2;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -48,7 +50,7 @@ public class PlayerCommand {
                                                 .then(
                                                     Commands.literal("facing")
                                                         .then(
-                                                            Commands.argument("facing", Vec2Argument.vec2())
+                                                            Commands.argument("facing", RotationArgument.rotation())
                                                                 .executes(PlayerCommand::spawnPlayer)
                                                                 .then(
                                                                     Commands.literal("in")
@@ -142,25 +144,29 @@ public class PlayerCommand {
     }
 
     public static int spawnPlayer(@NotNull CommandContext<CommandSourceStack> context) {
-        MinecraftServer server = context.getSource().getServer();
+        CommandSourceStack source = context.getSource();
+        MinecraftServer server = source.getServer();
         String name = ModCommands.getArg(context, "name", StringArgumentType::getString);
         if (name == null) {
-            context.getSource().sendFailure(Component.literal("Invalid player name").withStyle(ChatFormatting.RED));
+            source.sendFailure(TranslationUtil.trans("silicone_dolls.commands.tips.invalid_name").withStyle(ChatFormatting.RED));
             return 0;
         }
-        PlayerList playerList = context.getSource().getServer().getPlayerList();
+        PlayerList playerList = source.getServer().getPlayerList();
         ServerPlayer playerByName = playerList.getPlayerByName(name);
         if (playerByName != null) {
-            context.getSource().sendFailure(Component.literal("Player " + name + " is already online").withStyle(ChatFormatting.RED));
+            source.sendFailure(TranslationUtil.trans("silicone_dolls.commands.tips.logged", name).withStyle(ChatFormatting.RED));
             return 0;
         }
         Vec3 pos = ModCommands.getArg(context, "pos", Vec3Argument::getVec3);
         if (pos == null) {
-            pos = context.getSource().getPosition();
+            pos = source.getPosition();
         }
-        Vec2 facing = ModCommands.getArg(context, "facing", Vec2Argument::getVec2);
-        if (facing == null) {
-            facing = context.getSource().getRotation();
+        Coordinates coordinates = ModCommands.getArg(context, "facing", RotationArgument::getRotation);
+        Vec2 facing;
+        if (coordinates == null) {
+            facing = source.getRotation();
+        } else {
+            facing = coordinates.getRotation(source);
         }
         ServerLevel level = ModCommands.getArg(context, "dimension", (context1, name1) -> {
             try {
@@ -170,7 +176,7 @@ public class PlayerCommand {
             }
         });
         if (level == null) {
-            level = context.getSource().getLevel();
+            level = source.getLevel();
         }
         GameType gameMode = ModCommands.getArg(context, "gamemode", (context1, name1) -> {
             try {
@@ -180,7 +186,7 @@ public class PlayerCommand {
             }
         });
         if (gameMode == null) {
-            ServerPlayer player = context.getSource().getPlayer();
+            ServerPlayer player = source.getPlayer();
             if (player == null) {
                 gameMode = GameType.CREATIVE;
             } else {
@@ -204,21 +210,21 @@ public class PlayerCommand {
             fakePlayer.kill();
             return 1;
         } else {
-            context.getSource().sendFailure(Component.literal("Player " + player.getName().getString() + " is not a SiliconeRubber").withStyle(ChatFormatting.RED));
+            context.getSource().sendFailure(TranslationUtil.trans("silicone_dolls.commands.tips.not_fake", player.getName().getString()).withStyle(ChatFormatting.RED));
             return 0;
         }
     }
 
-    private static ServerPlayer isFakePlayerValid(@NotNull CommandContext<CommandSourceStack> context) {
+    private static @Nullable ServerPlayer isFakePlayerValid(@NotNull CommandContext<CommandSourceStack> context) {
         String name = ModCommands.getArg(context, "name", StringArgumentType::getString);
         if (name == null) {
-            context.getSource().sendFailure(Component.literal("Invalid player name").withStyle(ChatFormatting.RED));
+            context.getSource().sendFailure(TranslationUtil.trans("silicone_dolls.commands.tips.invalid_name").withStyle(ChatFormatting.RED));
             return null;
         }
         PlayerList playerList = context.getSource().getServer().getPlayerList();
         ServerPlayer playerByName = playerList.getPlayerByName(name);
         if (playerByName == null) {
-            context.getSource().sendFailure(Component.literal("Player not found").withStyle(ChatFormatting.RED));
+            context.getSource().sendFailure(TranslationUtil.trans("silicone_dolls.commands.tips.not_found").withStyle(ChatFormatting.RED));
             return null;
         }
         return playerByName;

@@ -1,6 +1,11 @@
 {
   "rolling_gate.category.silicone_dolls": "SILICONE DOLLS",
 
+  "silicone_dolls.commands.tips.invalid_name": "Invalid player name",
+  "silicone_dolls.commands.tips.logged": "Player %s is already logged in",
+  "silicone_dolls.commands.tips.not_fake": "Player %s is not a Fake Player",
+  "silicone_dolls.commands.tips.not_found": "Player not found",
+
   "silicone_dolls.rolling_gate.rule.command_player": "Command Player",
   "silicone_dolls.rolling_gate.rule.command_player.desc": "You can use the /player command to summon a fake player",
 
