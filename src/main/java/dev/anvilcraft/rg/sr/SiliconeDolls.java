@@ -10,12 +10,12 @@ import net.neoforged.neoforge.event.RegisterCommandsEvent;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 
-@Mod(SiliconeRubber.MODID)
-public class SiliconeRubber {
-    public static final String MODID = "silicone_rubber";
+@Mod(SiliconeDolls.MODID)
+public class SiliconeDolls {
+    public static final String MODID = "silicone_dolls";
     public static final Logger LOGGER = LogUtils.getLogger();
 
-    public SiliconeRubber(@NotNull IEventBus modEventBus, ModContainer modContainer) {
+    public SiliconeDolls(@NotNull IEventBus modEventBus, ModContainer modContainer) {
         NeoForge.EVENT_BUS.addListener(this::registerCommands);
     }
 

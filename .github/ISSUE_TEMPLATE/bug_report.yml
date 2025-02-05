@@ -50,9 +50,9 @@ body:
     attributes:
       label: Version Details - 版本信息
       description: |
-        What version of SiliconeRubber do you use?
-        你使用的 SiliconeRubber 版本是什么
-      placeholder: SiliconeRubber version
+        What version of SiliconeDolls do you use?
+        你使用的 SiliconeDolls 版本是什么
+      placeholder: SiliconeDolls version
     validations:
       required: true
 

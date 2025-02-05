@@ -1,0 +1,12 @@
+{
+  "rolling_gate.category.silicone_dolls": "SILICONE DOLLS",
+
+  "silicone_dolls.rolling_gate.rule.command_player": "Command Player",
+  "silicone_dolls.rolling_gate.rule.command_player.desc": "You can use the /player command to summon a fake player",
+
+  "silicone_dolls.rolling_gate.rule.allow_listing_fake_players": "Allow Listing Fake Players",
+  "silicone_dolls.rolling_gate.rule.allow_listing_fake_players.desc": "Allow listing fake players",
+
+  "silicone_dolls.rolling_gate.rule.allow_spawning_offline_players": "Allow Spawning Offline Players",
+  "silicone_dolls.rolling_gate.rule.allow_spawning_offline_players.desc": "Allow spawning offline players"
+}

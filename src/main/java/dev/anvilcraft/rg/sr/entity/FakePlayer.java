@@ -1,7 +1,7 @@
 package dev.anvilcraft.rg.sr.entity;
 
 import com.mojang.authlib.GameProfile;
-import dev.anvilcraft.rg.sr.SiliconeRubberServerRules;
+import dev.anvilcraft.rg.sr.SiliconeDollsServerRules;
 import dev.anvilcraft.rg.sr.util.ServerPlayerInjector;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.UUIDUtil;
@@ -73,7 +73,7 @@ public class FakePlayer extends ServerPlayer {
             GameProfileCache.setUsesAuthentication(server.isDedicatedServer() && server.usesAuthentication());
         }
         if (gameprofile == null) {
-            if (!SiliconeRubberServerRules.allowSpawningOfflinePlayers) {
+            if (!SiliconeDollsServerRules.allowSpawningOfflinePlayers) {
                 return false;
             } else {
                 gameprofile = new GameProfile(UUIDUtil.createOfflinePlayerUUID(username), username);
@@ -198,7 +198,7 @@ public class FakePlayer extends ServerPlayer {
 
     @Override
     public boolean allowsListing() {
-        return SiliconeRubberServerRules.allowListingFakePlayers;
+        return SiliconeDollsServerRules.allowListingFakePlayers;
     }
 
     @Override

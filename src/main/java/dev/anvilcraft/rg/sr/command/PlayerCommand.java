@@ -5,7 +5,7 @@ import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.suggestion.SuggestionProvider;
-import dev.anvilcraft.rg.sr.SiliconeRubberServerRules;
+import dev.anvilcraft.rg.sr.SiliconeDollsServerRules;
 import dev.anvilcraft.rg.sr.entity.FakePlayer;
 import dev.anvilcraft.rg.sr.init.ModCommands;
 import dev.anvilcraft.rg.sr.util.CommandRuleValidator;
@@ -33,7 +33,7 @@ public class PlayerCommand {
     public static void register(@NotNull CommandDispatcher<CommandSourceStack> dispatcher) {
         dispatcher.register(
             Commands.literal("player")
-                .requires(source -> CommandRuleValidator.hasPermission(() -> SiliconeRubberServerRules.commandPlayer, source))
+                .requires(source -> CommandRuleValidator.hasPermission(() -> SiliconeDollsServerRules.commandPlayer, source))
                 .then(
                     Commands.argument("name", StringArgumentType.word())
                         .suggests(PlayerCommand.suggestPlayer())
