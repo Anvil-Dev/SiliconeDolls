@@ -8,7 +8,7 @@
     "ConnectionMixin",
     "PlayerListMixin",
     "ServerPlayerMixin",
-    "kubejs.PacketDistributorMixin"
+    "combat.PacketDistributorMixin"
   ],
   "client": [
   ],

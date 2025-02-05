@@ -1,4 +1,4 @@
-package dev.anvilcraft.rg.sd.mixin.kubejs;
+package dev.anvilcraft.rg.sd.mixin.combat;
 
 import dev.anvilcraft.rg.sd.entity.FakePlayer;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
