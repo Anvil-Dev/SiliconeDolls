@@ -107,9 +107,11 @@ public class PlayerCommand {
                         )
                         .then(
                             Commands.literal("sprint")
+                                .executes(ctx-> sprint(ctx,true))
                         )
                         .then(
                             Commands.literal("unsprint")
+                                .executes(ctx-> sprint(ctx,false))
                         )
                         .then(
                             Commands.literal("swapHands")
@@ -144,6 +146,7 @@ public class PlayerCommand {
                         )
                         .then(
                             Commands.literal("stop")
+                                .executes(PlayerCommand::stopActions)
                         )
                 )
         );
@@ -264,6 +267,25 @@ public class PlayerCommand {
         if (player == null) return 0;
         PlayerActionPack actionPack = ((ServerPlayerInjector) player).getActionPack();
         actionPack.setSneaking(doSneak);
+        return 1;
+    }
+
+    public static int sprint(@NotNull CommandContext<CommandSourceStack> context,boolean doSprint) {
+        FakePlayer player = isFakePlayerValid(context);
+        if (player == null) return 0;
+        PlayerActionPack actionPack = ((ServerPlayerInjector) player).getActionPack();
+        actionPack.setSprinting(doSprint);
+        return 1;
+    }
+
+
+
+
+    public static int stopActions(@NotNull CommandContext<CommandSourceStack> context){
+        FakePlayer player = isFakePlayerValid(context);
+        if (player == null) return 0;
+        PlayerActionPack actionPack = ((ServerPlayerInjector) player).getActionPack();
+        actionPack.stopAll();
         return 1;
     }
 
