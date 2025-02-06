@@ -150,13 +150,11 @@ public class PlayerCommand {
                                         .suggests(PlayerCommand::suggestRotation)
                                         .executes(PlayerCommand::turnRotation)
                                 )
+                        ).then(
+                            Commands.literal("move")
                         )
                         .then(
                             Commands.literal("swapHands")
-                        )
-
-                        .then(
-                            Commands.literal("move")
                         )
                         .then(
                             Commands.literal("hotbar")
