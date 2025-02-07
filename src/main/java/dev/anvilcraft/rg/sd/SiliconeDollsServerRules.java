@@ -2,14 +2,13 @@ package dev.anvilcraft.rg.sd;
 
 import dev.anvilcraft.rg.api.RGValidator;
 import dev.anvilcraft.rg.api.Rule;
-import dev.anvilcraft.rg.sd.util.CommandRuleValidator;
 
 public class SiliconeDollsServerRules {
 
     @Rule(
-        allowed = {"ops", "true", "false"},
+        allowed = {"ops", "true", "false", "1", "2", "3", "4"},
         categories = SiliconeDolls.MODID,
-        validator = CommandRuleValidator.class
+        validator = RGValidator.CommandRuleValidator.class
     )
     public static String commandPlayer = "ops";
 
