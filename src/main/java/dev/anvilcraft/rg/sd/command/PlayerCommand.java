@@ -413,10 +413,6 @@ public class PlayerCommand {
         if (player == null) return 0;
         PlayerActionPack actionPack = ((ServerPlayerInjector) player).getActionPack();
         String s = ModCommands.getArg(context, "rotation", StringArgumentType::getString);
-        if (s == null) {
-            context.getSource().sendFailure(TranslationUtil.trans("silicone_dolls.commands.tips.invalid_command").withStyle(ChatFormatting.RED));
-            return 0;
-        }
         switch (s) {
             case "forward" -> {
                 actionPack.setForward(1.0f);
@@ -434,9 +430,11 @@ public class PlayerCommand {
                 actionPack.setStrafing(-1.0f);
                 return 1;
             }
+            case null, default -> {
+                context.getSource().sendFailure(TranslationUtil.trans("silicone_dolls.commands.tips.invalid_command").withStyle(ChatFormatting.RED));
+                return 0;
+            }
         }
-        context.getSource().sendFailure(TranslationUtil.trans("silicone_dolls.commands.tips.invalid_command").withStyle(ChatFormatting.RED));
-        return 0;
     }
 
     public static int stopActions(@NotNull CommandContext<CommandSourceStack> context) {
