@@ -9,9 +9,39 @@
   "silicone_dolls.rolling_gate.rule.command_player": "Command Player",
   "silicone_dolls.rolling_gate.rule.command_player.desc": "You can use the /player command to summon a fake player",
 
+  "silicone_dolls.rolling_gate.rule.command_bot": "Command Bot",
+  "silicone_dolls.rolling_gate.rule.command_bot.desc": "You can use the /bot command to manage fake players",
+
   "silicone_dolls.rolling_gate.rule.allow_listing_fake_players": "Allow Listing Fake Players",
   "silicone_dolls.rolling_gate.rule.allow_listing_fake_players.desc": "Allow listing fake players",
 
   "silicone_dolls.rolling_gate.rule.allow_spawning_offline_players": "Allow Spawning Offline Players",
-  "silicone_dolls.rolling_gate.rule.allow_spawning_offline_players.desc": "Allow spawning offline players"
+  "silicone_dolls.rolling_gate.rule.allow_spawning_offline_players.desc": "Allow spawning offline players",
+
+  "silicone_dolls.rolling_gate.rule.open_fake_player_inventory": "Open Fake Player Inventory",
+  "silicone_dolls.rolling_gate.rule.open_fake_player_inventory.desc": "Allow player to open the fake player's inventory",
+
+  "silicone_dolls.rolling_gate.rule.open_fake_player_ender_chest": "Open Fake Player Ender Chest",
+  "silicone_dolls.rolling_gate.rule.open_fake_player_ender_chest.desc": "Allow player to open the fake player's ender chest",
+
+  "silicone_dolls.rolling_gate.rule.fake_player_resident": "Fake Player Resident",
+  "silicone_dolls.rolling_gate.rule.fake_player_resident.desc": "Keep the fake player when exiting the level",
+
+  "silicone_dolls.rolling_gate.rule.fake_player_reload_action": "Fake Player Reload Action",
+  "silicone_dolls.rolling_gate.rule.fake_player_reload_action.desc": "Keep the fake player action when exiting the level",
+
+  "silicone_dolls.rolling_gate.rule.fake_player_auto_replenishment": "Fake Player Auto Replenishment",
+  "silicone_dolls.rolling_gate.rule.fake_player_auto_replenishment.desc": "Make fake player to auto replenishment",
+
+  "silicone_dolls.rolling_gate.rule.fake_player_auto_fish": "Fake Player Auto Fish",
+  "silicone_dolls.rolling_gate.rule.fake_player_auto_fish.desc": "Make fake player to auto fish",
+
+  "silicone_dolls.rolling_gate.rule.fake_player_auto_replace_tool": "Fake Player Auto Replace Tool",
+  "silicone_dolls.rolling_gate.rule.fake_player_auto_replace_tool.desc": "Make fake player to auto replace almost damaged tool",
+
+  "silicone_dolls.rolling_gate.rule.fake_player_name_prefix": "Fake Player Name Prefix",
+  "silicone_dolls.rolling_gate.rule.fake_player_name_prefix.desc": "Fake player name prefix",
+
+  "silicone_dolls.rolling_gate.rule.fake_player_name_suffix": "Fake Player Name Suffix",
+  "silicone_dolls.rolling_gate.rule.fake_player_name_suffix.desc": "Fake player name suffix"
 }

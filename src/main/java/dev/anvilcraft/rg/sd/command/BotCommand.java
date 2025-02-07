@@ -65,7 +65,7 @@ public class BotCommand {
         dispatcher.register(
             Commands.literal("bot")
                 .executes(BotCommand::list)
-                .requires(source -> RGValidator.CommandRuleValidator.hasPermission(() -> SiliconeDollsServerRules.commandBotList, source))
+                .requires(source -> RGValidator.CommandRuleValidator.hasPermission(() -> SiliconeDollsServerRules.commandBot, source))
                 .then(
                     Commands.literal("list")
                         .executes(BotCommand::list)
@@ -101,7 +101,7 @@ public class BotCommand {
                 )
                 .then(
                     Commands.literal("group")
-                        .requires(source -> RGValidator.CommandRuleValidator.hasPermission(() -> SiliconeDollsServerRules.commandBotList, source))
+                        .requires(source -> RGValidator.CommandRuleValidator.hasPermission(() -> SiliconeDollsServerRules.commandBot, source))
                         .then(
                             Commands.literal("create")
                                 .then(
