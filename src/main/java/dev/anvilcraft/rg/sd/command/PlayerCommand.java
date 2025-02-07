@@ -85,7 +85,7 @@ public class PlayerCommand {
                                 .executes(PlayerCommand::kill)
                         )
                         .then(
-                            //use, jump, attack
+                            //use, jump, attack, drop, swapHands
                             Commands.argument("action", StringArgumentType.word())
                                 .suggests(PlayerCommand::suggestAction)
                                 .executes(ctx -> actions(ctx, "once"))
@@ -150,20 +150,26 @@ public class PlayerCommand {
                                         .suggests(PlayerCommand::suggestRotation)
                                         .executes(PlayerCommand::turnRotation)
                                 )
-                        ).then(
-                            Commands.literal("move")
-                        )
-                        .then(
-                            Commands.literal("swapHands")
-                        )
-                        .then(
-                            Commands.literal("hotbar")
-                        )
-                        .then(
-                            Commands.literal("drop")
                         )
                         .then(
                             Commands.literal("dropStack")
+                                .executes(PlayerCommand::dropStack)
+                                .then(
+                                    Commands.argument("all", StringArgumentType.word())
+                                        .suggests(PlayerCommand::suggestDropStack)
+                                        .executes(PlayerCommand::dropStack)
+                                )
+                        )
+                        .then(
+                            Commands.literal("move")
+                                .then(
+                                    Commands.argument("rotation", StringArgumentType.word())
+                                        .suggests(PlayerCommand::suggestRotation)
+                                        .executes(PlayerCommand::move)
+                                )
+                        )
+                        .then(
+                            Commands.literal("hotbar")
                         )
                         .then(
                             Commands.literal("shadow")
@@ -187,7 +193,7 @@ public class PlayerCommand {
     }
 
     private static @NotNull CompletableFuture<Suggestions> suggestAction(final CommandContext<CommandSourceStack> context, final SuggestionsBuilder builder) {
-        return SharedSuggestionProvider.suggest(new String[]{"jump", "use", "attack"}, builder);
+        return SharedSuggestionProvider.suggest(new String[]{"jump", "use", "attack", "swapHands", "drop"}, builder);
     }
 
     private static @NotNull CompletableFuture<Suggestions> suggestDirection(final CommandContext<CommandSourceStack> context, final SuggestionsBuilder builder) {
@@ -196,6 +202,10 @@ public class PlayerCommand {
 
     private static @NotNull CompletableFuture<Suggestions> suggestRotation(final CommandContext<CommandSourceStack> context, final SuggestionsBuilder builder) {
         return SharedSuggestionProvider.suggest(new String[]{"left", "forward", "right", "back"}, builder);
+    }
+
+    private static @NotNull CompletableFuture<Suggestions> suggestDropStack(final CommandContext<CommandSourceStack> context, final SuggestionsBuilder builder) {
+        return SharedSuggestionProvider.suggest(new String[]{"all"}, builder);
     }
 
     public static int spawnPlayer(@NotNull CommandContext<CommandSourceStack> context) {
@@ -270,29 +280,28 @@ public class PlayerCommand {
         if (action == null) {
             return 0;
         }
-        if (action.equals("jump") || action.equals("use") || action.equals("attack")) {
-            FakePlayer player = isFakePlayerValid(context);
-            if (player == null) return 0;
-            PlayerActionPack actionPack = ((ServerPlayerInjector) player).getActionPack();
-            if (interval.equals("interval")) {
-                int time;
-                try {
-                    time = IntegerArgumentType.getInteger(context, "time");
-                } catch (IllegalArgumentException ignored) {
-                    context.getSource().sendFailure(TranslationUtil.trans("silicone_dolls.commands.tips.invalid_interval").withStyle(ChatFormatting.RED));
-                    return 0;
-                }
-                actionPack.start(getAction(action), PlayerActionPack.Action.interval(time));
-            } else if (interval.equals("continues")) {
-                actionPack.start(getAction(action), PlayerActionPack.Action.continuous());
-            } else {
-                actionPack.start(getAction(action), PlayerActionPack.Action.once());
-            }
-            return 1;
-        } else {
+        if (getAction(action) == null) {
             context.getSource().sendFailure(TranslationUtil.trans("silicone_dolls.commands.tips.invalid_command").withStyle(ChatFormatting.RED));
             return 0;
         }
+        FakePlayer player = isFakePlayerValid(context);
+        if (player == null) return 0;
+        PlayerActionPack actionPack = ((ServerPlayerInjector) player).getActionPack();
+        if (interval.equals("interval")) {
+            int time;
+            try {
+                time = IntegerArgumentType.getInteger(context, "time");
+            } catch (IllegalArgumentException ignored) {
+                context.getSource().sendFailure(TranslationUtil.trans("silicone_dolls.commands.tips.invalid_interval").withStyle(ChatFormatting.RED));
+                return 0;
+            }
+            actionPack.start(getAction(action), PlayerActionPack.Action.interval(time));
+        } else if (interval.equals("continues")) {
+            actionPack.start(getAction(action), PlayerActionPack.Action.continuous());
+        } else {
+            actionPack.start(getAction(action), PlayerActionPack.Action.once());
+        }
+        return 1;
     }
 
     public static int sneak(@NotNull CommandContext<CommandSourceStack> context, boolean doSneak) {
@@ -383,6 +392,53 @@ public class PlayerCommand {
         return 1;
     }
 
+    public static int dropStack(@NotNull CommandContext<CommandSourceStack> context) {
+        FakePlayer player = isFakePlayerValid(context);
+        if (player == null) return 0;
+        PlayerActionPack actionPack = ((ServerPlayerInjector) player).getActionPack();
+        String s = ModCommands.getArg(context, "all", StringArgumentType::getString);
+        if (s == null) {
+            actionPack.drop(-1, true);
+        } else if (s.equals("all")) {
+            actionPack.drop(-2, true);
+        } else {
+            context.getSource().sendFailure(TranslationUtil.trans("silicone_dolls.commands.tips.invalid_command").withStyle(ChatFormatting.RED));
+            return 0;
+        }
+        return 1;
+    }
+
+    public static int move(@NotNull CommandContext<CommandSourceStack> context) {
+        FakePlayer player = isFakePlayerValid(context);
+        if (player == null) return 0;
+        PlayerActionPack actionPack = ((ServerPlayerInjector) player).getActionPack();
+        String s = ModCommands.getArg(context, "rotation", StringArgumentType::getString);
+        if (s == null) {
+            context.getSource().sendFailure(TranslationUtil.trans("silicone_dolls.commands.tips.invalid_command").withStyle(ChatFormatting.RED));
+            return 0;
+        }
+        switch (s) {
+            case "forward" -> {
+                actionPack.setForward(1.0f);
+                return 1;
+            }
+            case "back" -> {
+                actionPack.setForward(-1.0f);
+                return 1;
+            }
+            case "left" -> {
+                actionPack.setStrafing(1.0f);
+                return 1;
+            }
+            case "right" -> {
+                actionPack.setStrafing(-1.0f);
+                return 1;
+            }
+        }
+        context.getSource().sendFailure(TranslationUtil.trans("silicone_dolls.commands.tips.invalid_command").withStyle(ChatFormatting.RED));
+        return 0;
+    }
+
     public static int stopActions(@NotNull CommandContext<CommandSourceStack> context) {
         FakePlayer player = isFakePlayerValid(context);
         if (player == null) return 0;
@@ -419,8 +475,8 @@ public class PlayerCommand {
             case "use" -> PlayerActionPack.ActionType.USE;
             case "attack" -> PlayerActionPack.ActionType.ATTACK;
             case "jump" -> PlayerActionPack.ActionType.JUMP;
-            case "drop_item" -> PlayerActionPack.ActionType.DROP_ITEM;
-            case "drop_stack" -> PlayerActionPack.ActionType.DROP_STACK;
+            case "swapHands" -> PlayerActionPack.ActionType.SWAP_HANDS;
+            case "drop" -> PlayerActionPack.ActionType.DROP_ITEM;
             case null, default -> null;
         };
     }
