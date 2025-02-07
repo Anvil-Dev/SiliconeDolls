@@ -7,6 +7,7 @@ import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.suggestion.SuggestionProvider;
+import dev.anvilcraft.rg.api.RGValidator;
 import com.mojang.brigadier.suggestion.Suggestions;
 import com.mojang.brigadier.suggestion.SuggestionsBuilder;
 import dev.anvilcraft.rg.api.server.TranslationUtil;
@@ -14,7 +15,6 @@ import dev.anvilcraft.rg.sd.SiliconeDollsServerRules;
 import dev.anvilcraft.rg.sd.entity.FakePlayer;
 import dev.anvilcraft.rg.sd.entity.PlayerActionPack;
 import dev.anvilcraft.rg.sd.init.ModCommands;
-import dev.anvilcraft.rg.sd.util.CommandRuleValidator;
 import dev.anvilcraft.rg.sd.util.ServerPlayerInjector;
 import net.minecraft.ChatFormatting;
 import net.minecraft.commands.CommandSourceStack;
@@ -44,7 +44,7 @@ public class PlayerCommand {
     public static void register(@NotNull CommandDispatcher<CommandSourceStack> dispatcher) {
         dispatcher.register(
             Commands.literal("player")
-                .requires(source -> CommandRuleValidator.hasPermission(() -> SiliconeDollsServerRules.commandPlayer, source))
+                .requires(source -> RGValidator.CommandRuleValidator.hasPermission(() -> SiliconeDollsServerRules.commandPlayer, source))
                 .then(
                     Commands.argument("name", StringArgumentType.word())
                         .suggests(PlayerCommand.suggestPlayer())
@@ -349,37 +349,37 @@ public class PlayerCommand {
         return 1;
     }
 
-    public static int turnRotation(@NotNull CommandContext<CommandSourceStack> context){
+    public static int turnRotation(@NotNull CommandContext<CommandSourceStack> context) {
         String rotation = ModCommands.getArg(context, "rotation", StringArgumentType::getString);
         if (rotation == null) {
             return 0;
         }
         int r = getAngle(rotation);
-        if(r == -1){
+        if (r == -1) {
             context.getSource().sendFailure(TranslationUtil.trans("silicone_dolls.commands.tips.invalid_rotation").withStyle(ChatFormatting.RED));
             return 0;
         }
         FakePlayer player = isFakePlayerValid(context);
         if (player == null) return 0;
         PlayerActionPack actionPack = ((ServerPlayerInjector) player).getActionPack();
-        actionPack.turn(r,0);
+        actionPack.turn(r, 0);
         return 1;
     }
 
-    public static int turn(@NotNull CommandContext<CommandSourceStack> context){
+    public static int turn(@NotNull CommandContext<CommandSourceStack> context) {
         FakePlayer player = isFakePlayerValid(context);
         if (player == null) return 0;
         PlayerActionPack actionPack = ((ServerPlayerInjector) player).getActionPack();
         float x;
         float y;
-        try{
-            x= FloatArgumentType.getFloat(context, "x");
-            y= FloatArgumentType.getFloat(context, "y");
-        }catch (IllegalArgumentException ignored){
+        try {
+            x = FloatArgumentType.getFloat(context, "x");
+            y = FloatArgumentType.getFloat(context, "y");
+        } catch (IllegalArgumentException ignored) {
             context.getSource().sendFailure(TranslationUtil.trans("silicone_dolls.commands.tips.invalid_rotation").withStyle(ChatFormatting.RED));
             return 0;
         }
-        actionPack.turn(x,y);
+        actionPack.turn(x, y);
         return 1;
     }
 
@@ -414,7 +414,7 @@ public class PlayerCommand {
         return null;
     }
 
-    public static PlayerActionPack.ActionType getAction(String name) {
+    public static @Nullable PlayerActionPack.ActionType getAction(String name) {
         return switch (name) {
             case "use" -> PlayerActionPack.ActionType.USE;
             case "attack" -> PlayerActionPack.ActionType.ATTACK;
@@ -425,7 +425,7 @@ public class PlayerCommand {
         };
     }
 
-    public static Direction getDirection(String direction) {
+    public static @Nullable Direction getDirection(String direction) {
         return switch (direction) {
             case "west" -> Direction.WEST;
             case "east" -> Direction.EAST;
