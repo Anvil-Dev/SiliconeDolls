@@ -1,0 +1,47 @@
+{
+  "rolling_gate.category.silicone_dolls": "硅胶玩偶",
+
+  "silicone_dolls.commands.tips.invalid_name": "无效的玩家名称",
+  "silicone_dolls.commands.tips.logged": "玩家 %s 已登录",
+  "silicone_dolls.commands.tips.not_fake": "玩家 %s 不是假玩家",
+  "silicone_dolls.commands.tips.not_found": "未找到玩家",
+
+  "silicone_dolls.rolling_gate.rule.command_player": "Player 命令",
+  "silicone_dolls.rolling_gate.rule.command_player.desc": "您可以使用 /player 命令召唤假玩家",
+
+  "silicone_dolls.rolling_gate.rule.command_bot": "Bot 命令",
+  "silicone_dolls.rolling_gate.rule.command_bot.desc": "您可以使用 /bot 命令来管理假玩家",
+
+  "silicone_dolls.rolling_gate.rule.allow_listing_fake_players": "允许列出假玩家",
+  "silicone_dolls.rolling_gate.rule.allow_listing_fake_players.desc": "允许列出假玩家",
+
+  "silicone_dolls.rolling_gate.rule.allow_spawning_offline_players": "允许生成离线玩家",
+  "silicone_dolls.rolling_gate.rule.allow_spawning_offline_players.desc": "允许生成离线玩家",
+
+  "silicone_dolls.rolling_gate.rule.open_fake_player_inventory": "假玩家背包",
+  "silicone_dolls.rolling_gate.rule.open_fake_player_inventory.desc": "允许玩家打开假玩家的背包",
+
+  "silicone_dolls.rolling_gate.rule.open_fake_player_ender_chest": "假玩家末影箱",
+  "silicone_dolls.rolling_gate.rule.open_fake_player_ender_chest.desc": "允许玩家打开假玩家的末影箱",
+
+  "silicone_dolls.rolling_gate.rule.fake_player_resident": "假玩家常驻",
+  "silicone_dolls.rolling_gate.rule.fake_player_resident.desc": "退出时保留假玩家",
+
+  "silicone_dolls.rolling_gate.rule.fake_player_reload_action": "假玩家动作重载",
+  "silicone_dolls.rolling_gate.rule.fake_player_reload_action.desc": "退出关卡时保留假玩家动作",
+
+  "silicone_dolls.rolling_gate.rule.fake_player_auto_replenishment": "假玩家自动补货",
+  "silicone_dolls.rolling_gate.rule.fake_player_auto_replenishment.desc": "让假玩家可以自动补货",
+
+  "silicone_dolls.rolling_gate.rule.fake_player_auto_fish": "假玩家自动钓鱼",
+  "silicone_dolls.rolling_gate.rule.fake_player_auto_fish.desc": "让假玩家自动钓鱼",
+
+  "silicone_dolls.rolling_gate.rule.fake_player_auto_replace_tool": "假玩家自动替换工具",
+  "silicone_dolls.rolling_gate.rule.fake_player_auto_replace_tool.desc": "让假玩家自动替换几乎损坏的工具",
+
+  "silicone_dolls.rolling_gate.rule.fake_player_name_prefix": "假玩家名称前缀",
+  "silicone_dolls.rolling_gate.rule.fake_player_name_prefix.desc": "假玩家名称前缀",
+
+  "silicone_dolls.rolling_gate.rule.fake_player_name_suffix": "假玩家名称后缀",
+  "silicone_dolls.rolling_gate.rule.fake_player_name_suffix.desc": "假玩家名称后缀"
+}

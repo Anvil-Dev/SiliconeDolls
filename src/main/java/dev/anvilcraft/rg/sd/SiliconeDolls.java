@@ -43,6 +43,7 @@ public class SiliconeDolls implements RGAdditional {
     @Override
     public void loadServerRules(@NotNull ServerRGRuleManager manager) {
         manager.register(SiliconeDollsServerRules.class);
+        TranslationUtil.loadLanguage(SiliconeDolls.class, SiliconeDolls.MODID, "en_us");
         TranslationUtil.loadLanguage(SiliconeDolls.class, SiliconeDolls.MODID, "zh_cn");
     }
 }
