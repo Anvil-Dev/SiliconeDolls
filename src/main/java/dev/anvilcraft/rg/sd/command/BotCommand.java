@@ -51,10 +51,12 @@ import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.network.connection.ConnectionType;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
+@SuppressWarnings({"SameParameterValue", "unused"})
 public class BotCommand {
     public static final FilesUtil.MapFile<String, BotInfo> BOT_INFO = new FilesUtil.MapFile<>("bot", Object::toString, BotInfo.class);
     public static final FilesUtil.MapFile<String, BotGroupInfo> BOT_GROUP_INFO = new FilesUtil.MapFile<>("botGroup", Object::toString, BotGroupInfo.class);
@@ -94,6 +96,7 @@ public class BotCommand {
                     Commands.literal("remove")
                         .then(
                             Commands.argument("player", StringArgumentType.string())
+                                .executes(BotCommand::remove)
                         )
                 )
         );
@@ -104,18 +107,22 @@ public class BotCommand {
                     Commands.literal("create")
                         .then(
                             Commands.argument("name", StringArgumentType.greedyString())
+                                .executes(BotCommand::groupCreate)
                         )
                 )
                 .then(
                     Commands.literal("list")
+                        .executes(BotCommand::groupList)
                         .then(
                             Commands.argument("page", IntegerArgumentType.integer(1))
+                                .executes(BotCommand::groupList)
                         )
                 )
                 .then(
                     Commands.literal("remove")
                         .then(
                             Commands.argument("name", StringArgumentType.greedyString())
+                                .executes(BotCommand::groupRemove)
                         )
                 )
                 .then(
@@ -124,6 +131,7 @@ public class BotCommand {
                             Commands.argument("bot", StringArgumentType.string())
                                 .then(
                                     Commands.argument("group", StringArgumentType.greedyString())
+                                        .executes(BotCommand::groupAddBot)
                                 )
                         )
                 )
@@ -133,6 +141,7 @@ public class BotCommand {
                             Commands.argument("bot", StringArgumentType.string())
                                 .then(
                                     Commands.argument("group", StringArgumentType.greedyString())
+                                        .executes(BotCommand::groupRemoveBot)
                                 )
                         )
                 )
@@ -140,18 +149,21 @@ public class BotCommand {
                     Commands.literal("load")
                         .then(
                             Commands.argument("group", StringArgumentType.greedyString())
+                                .executes(BotCommand::groupLoadBot)
                         )
                 )
                 .then(
                     Commands.literal("unload")
                         .then(
                             Commands.argument("group", StringArgumentType.greedyString())
+                                .executes(BotCommand::groupUnloadBot)
                         )
                 )
                 .then(
                     Commands.literal("info")
                         .then(
                             Commands.argument("group", StringArgumentType.greedyString())
+                                .executes(BotCommand::groupInfo)
                         )
                 )
         );
@@ -342,6 +354,269 @@ public class BotCommand {
         BOT_INFO.save();
         source.sendSuccess(() -> Component.literal("%s is added.".formatted(name)), false);
         return 1;
+    }
+
+    private static int remove(CommandContext<CommandSourceStack> context) {
+        BOT_INFO.init(context);
+        String name = StringArgumentType.getString(context, "player");
+        BotInfo remove = BotCommand.BOT_INFO.map.remove(name);
+        if (remove == null) {
+            context.getSource().sendFailure(Component.literal("Bot %s is not exist.".formatted(name)));
+            return 0;
+        }
+        context.getSource().sendSuccess(() -> Component.literal("%s is removed.".formatted(name)), false);
+        BOT_INFO.save();
+        return 1;
+    }
+
+    private static boolean groupInit(CommandContext<CommandSourceStack> context) {
+        BOT_GROUP_INFO.init(context);
+        BOT_INFO.init(context);
+        CommandSourceStack source = context.getSource();
+        String groupName = StringArgumentType.getString(context, "group");
+        if (!BOT_GROUP_INFO.map.containsKey(groupName)) {
+            source.sendFailure(Component.literal("Group %s is not found.".formatted(groupName)));
+            return true;
+        }
+        List<String> botNames = BOT_GROUP_INFO.map.get(groupName).bots;
+        List<String> failedBots = new ArrayList<>();
+        for (String botName : botNames) {
+            if (!BOT_INFO.map.containsKey(botName)) {
+                failedBots.add(botName);
+            }
+        }
+        botNames.removeAll(failedBots);
+        BOT_GROUP_INFO.map.put(
+            groupName,
+            new BotGroupInfo(groupName, botNames)
+        );
+        BOT_GROUP_INFO.save();
+        return false;
+    }
+
+    private static int groupInfo(CommandContext<CommandSourceStack> context) {
+        if (groupInit(context)) return 0;
+        String groupName = StringArgumentType.getString(context, "group");
+        int page;
+        try {
+            page = IntegerArgumentType.getInteger(context, "page");
+        } catch (IllegalArgumentException ignored) {
+            page = 1;
+        }
+        final int pageSize = 8;
+        int size = BOT_GROUP_INFO.map.get(groupName).bots.size();
+        int maxPage = size / pageSize + 1;
+        if (page > maxPage) {
+            context.getSource().sendFailure(Component.literal("No such page %s".formatted(page)));
+            return 0;
+        }
+        ArrayList<BotInfo> botInfos = new ArrayList<>();
+        for (String botName : BOT_GROUP_INFO.map.get(groupName).bots) {
+            botInfos.add(BOT_INFO.map.get(botName));
+        }
+        context.getSource().sendSystemMessage(
+            Component.literal("======= Bot Group %s (Page %s/%s) =======".formatted(groupName, page, maxPage))
+                .withStyle(ChatFormatting.YELLOW)
+        );
+        for (int i = (page - 1) * pageSize; i < size && i < page * pageSize; i++) {
+            context.getSource().sendSystemMessage(botToComponent(botInfos.get(i)));
+        }
+        listComponent(context, page, maxPage, "/botGroup show");
+        return 1;
+    }
+
+    private static int groupUnloadBot(CommandContext<CommandSourceStack> context) {
+        if (groupInit(context)) return 0;
+        CommandSourceStack source = context.getSource();
+        String groupName = StringArgumentType.getString(context, "group");
+        List<String> botNames = BOT_GROUP_INFO.map.get(groupName).bots;
+        for (String botName : botNames) {
+            ServerPlayer player = source.getServer().getPlayerList().getPlayerByName(botName);
+            if (player == null) continue;
+            if (!(player instanceof FakePlayer fake)) continue;
+            fake.kill();
+        }
+        return 1;
+    }
+
+    private static int groupLoadBot(CommandContext<CommandSourceStack> context) {
+        BOT_GROUP_INFO.init(context);
+        BOT_INFO.init(context);
+        CommandSourceStack source = context.getSource();
+        String groupName = StringArgumentType.getString(context, "group");
+        if (!BOT_GROUP_INFO.map.containsKey(groupName)) {
+            source.sendFailure(Component.literal("Group %s is not found.".formatted(groupName)));
+            return 0;
+        }
+        List<String> botNames = BOT_GROUP_INFO.map.get(groupName).bots;
+        List<String> failedBots = new ArrayList<>();
+        for (String botName : new ArrayList<>(botNames)) {
+            if (!BOT_INFO.map.containsKey(botName)) {
+                failedBots.add(botName);
+                continue;
+            }
+            load(botName, source::sendFailure);
+        }
+        botNames.removeAll(failedBots);
+        BOT_GROUP_INFO.map.put(
+            groupName,
+            new BotGroupInfo(groupName, botNames)
+        );
+        BOT_GROUP_INFO.save();
+        return 1;
+    }
+
+    private static int groupRemoveBot(CommandContext<CommandSourceStack> context) {
+        BOT_GROUP_INFO.init(context);
+        CommandSourceStack source = context.getSource();
+        String groupName = StringArgumentType.getString(context, "group");
+        String botName = StringArgumentType.getString(context, "bot");
+        if (!BOT_GROUP_INFO.map.containsKey(groupName)) {
+            source.sendFailure(Component.literal("Group %s is not found.".formatted(groupName)));
+            return 0;
+        }
+        List<String> botNames = BOT_GROUP_INFO.map.get(groupName).bots;
+        if (!botNames.contains(botName)) {
+            source.sendFailure(Component.literal("Bot %s is not found in the %s.".formatted(botName, groupName)));
+            return 0;
+        }
+        botNames.remove(botName);
+        BotCommand.BOT_GROUP_INFO.map.put(
+            groupName,
+            new BotGroupInfo(
+                groupName,
+                botNames
+            )
+        );
+        BOT_GROUP_INFO.save();
+        source.sendSuccess(() -> Component.literal("Bot %s is removed from %s successfully.".formatted(botName, groupName)), false);
+        return 1;
+    }
+
+    private static int groupAddBot(CommandContext<CommandSourceStack> context) {
+        BOT_GROUP_INFO.init(context);
+        BOT_INFO.init(context);
+        CommandSourceStack source = context.getSource();
+        String groupName = StringArgumentType.getString(context, "group");
+        String botName = StringArgumentType.getString(context, "bot");
+        if (!BOT_INFO.map.containsKey(botName)) {
+            source.sendFailure(Component.literal("Bot %s is not found.".formatted(botName)));
+            return 0;
+        }
+        if (!BOT_GROUP_INFO.map.containsKey(groupName)) {
+            source.sendFailure(Component.literal("Group %s is not found.".formatted(groupName)));
+            return 0;
+        }
+        List<String> botNames = BOT_GROUP_INFO.map.get(groupName).bots;
+        if (botNames.contains(botName)) {
+            source.sendFailure(Component.literal("Bot %s is already added.".formatted(botName)));
+            return 0;
+        }
+        botNames.add(botName);
+        BotCommand.BOT_GROUP_INFO.map.put(
+            groupName,
+            new BotGroupInfo(
+                groupName,
+                botNames
+            )
+        );
+        BOT_GROUP_INFO.save();
+        source.sendSuccess(() -> Component.literal("Bot %s is added to %s successfully.".formatted(botName, groupName)), false);
+        return 1;
+    }
+
+    private static int groupCreate(CommandContext<CommandSourceStack> context) {
+        BOT_GROUP_INFO.init(context);
+        CommandSourceStack source = context.getSource();
+        String groupName = StringArgumentType.getString(context, "name");
+        if (BOT_GROUP_INFO.map.containsKey(groupName)) {
+            source.sendFailure(Component.literal("Group %s already exists.".formatted(groupName)));
+            return 0;
+        }
+        BOT_GROUP_INFO.map.put(
+            groupName,
+            new BotGroupInfo(groupName, new ArrayList<>())
+        );
+        BOT_GROUP_INFO.save();
+        source.sendSuccess(() -> Component.literal("Group %s created successfully.".formatted(groupName)), false);
+        return 1;
+    }
+
+    private static int groupRemove(CommandContext<CommandSourceStack> context) {
+        BOT_GROUP_INFO.init(context);
+        String name = StringArgumentType.getString(context, "name");
+        BotGroupInfo remove = BotCommand.BOT_GROUP_INFO.map.remove(name);
+        if (remove == null) {
+            context.getSource().sendFailure(Component.literal("Bot Group %s is not exist.".formatted(name)));
+            return 0;
+        }
+        context.getSource().sendSuccess(() -> Component.literal("%s is removed.".formatted(name)), false);
+        BOT_GROUP_INFO.save();
+        return 1;
+    }
+
+    private static int groupList(CommandContext<CommandSourceStack> context) {
+        BOT_GROUP_INFO.init(context);
+        int page;
+        try {
+            page = IntegerArgumentType.getInteger(context, "page");
+        } catch (IllegalArgumentException ignored) {
+            page = 1;
+        }
+        final int pageSize = 8;
+        int size = BOT_GROUP_INFO.map.size();
+        int maxPage = size / pageSize + 1;
+        if (page > maxPage) {
+            context.getSource().sendFailure(Component.literal("No such page %s".formatted(page)));
+            return 0;
+        }
+        BotGroupInfo[] botGroupInfos = BOT_GROUP_INFO.map.values().toArray(new BotGroupInfo[0]);
+        context.getSource().sendSystemMessage(
+            Component.literal("======= Bot Group List (Page %s/%s) =======".formatted(page, maxPage))
+                .withStyle(ChatFormatting.YELLOW)
+        );
+        for (int i = (page - 1) * pageSize; i < size && i < page * pageSize; i++) {
+            context.getSource().sendSystemMessage(botGroupToComponent(botGroupInfos[i]));
+        }
+        listComponent(context, page, maxPage, "/botGroup list");
+        return 1;
+    }
+
+    private static @NotNull MutableComponent botGroupToComponent(@NotNull BotGroupInfo botGroupInfo) {
+        MutableComponent name = Component.literal(botGroupInfo.name).withStyle(
+            Style.EMPTY
+                .applyFormat(ChatFormatting.GRAY)
+                .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Component.literal(botGroupInfo.name)))
+        );
+        MutableComponent load = Component.literal("[↑]").withStyle(
+            Style.EMPTY
+                .applyFormat(ChatFormatting.GREEN)
+                .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Component.literal("Load Group")))
+                .withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/botGroup load %s".formatted(botGroupInfo.name)))
+        );
+        MutableComponent remove = Component.literal("[↓]").withStyle(
+            Style.EMPTY
+                .applyFormat(ChatFormatting.RED)
+                .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Component.literal("Unload Group")))
+                .withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/botGroup unload %s".formatted(botGroupInfo.name)))
+        );
+        MutableComponent info = Component.literal("[i]").withStyle(
+            Style.EMPTY
+                .applyFormat(ChatFormatting.RED)
+                .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Component.literal("Group Info")))
+                .withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/botGroup info %s".formatted(botGroupInfo.name)))
+        );
+        MutableComponent delete = Component.literal("[\uD83D\uDDD1]").withStyle(
+            Style.EMPTY
+                .applyFormat(ChatFormatting.RED)
+                .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Component.literal("Remove Bot Group")))
+                .withClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, "/botGroup remove %s".formatted(botGroupInfo.name)))
+        );
+        MutableComponent component = Component.literal("▶ ").append(name);
+        component.append(" ").append(load);
+        component.append(" ").append(remove);
+        component.append(" ").append(info);
+        return component.append(" ").append(delete);
     }
 
 
