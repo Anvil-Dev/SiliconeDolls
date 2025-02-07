@@ -157,4 +157,6 @@ idea {
     }
 }
 
-lombok { version = "1.18.34"}
+lombok {
+    version = "1.18.34"
+}

@@ -469,14 +469,7 @@ public class PlayerCommand {
     }
 
     public static @Nullable PlayerActionPack.ActionType getAction(String name) {
-        return switch (name) {
-            case "use" -> PlayerActionPack.ActionType.USE;
-            case "attack" -> PlayerActionPack.ActionType.ATTACK;
-            case "jump" -> PlayerActionPack.ActionType.JUMP;
-            case "swapHands" -> PlayerActionPack.ActionType.SWAP_HANDS;
-            case "drop" -> PlayerActionPack.ActionType.DROP_ITEM;
-            case null, default -> null;
-        };
+        return PlayerActionPack.ActionType.fromString(name);
     }
 
     public static @Nullable Direction getDirection(String direction) {

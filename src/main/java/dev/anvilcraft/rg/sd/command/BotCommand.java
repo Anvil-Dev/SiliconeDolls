@@ -15,12 +15,12 @@ import dev.anvilcraft.rg.sd.SiliconeDolls;
 import dev.anvilcraft.rg.sd.SiliconeDollsServerRules;
 import dev.anvilcraft.rg.sd.entity.FakeClientConnection;
 import dev.anvilcraft.rg.sd.entity.FakePlayer;
+import dev.anvilcraft.rg.sd.entity.PlayerActionPack;
 import dev.anvilcraft.rg.sd.init.ModCommands;
 import dev.anvilcraft.rg.sd.mixin.EntityInvoker;
 import dev.anvilcraft.rg.sd.mixin.PlayerAccessor;
-import dev.anvilcraft.rg.sd.tools.FakePlayerSerializer;
-import dev.anvilcraft.rg.sd.tools.FilesUtil;
 import dev.anvilcraft.rg.sd.util.ServerPlayerInjector;
+import dev.anvilcraft.rg.tools.FilesUtil;
 import net.minecraft.ChatFormatting;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
@@ -303,7 +303,8 @@ public class BotCommand {
                     BOT_INFO.server.getPlayerList().broadcastAll(new ClientboundTeleportEntityPacket(instance), botInfo.dimType);
                     instance.getEntityData().set(PlayerAccessor.getCustomisationData(), (byte) 127);
                     instance.getAbilities().flying = botInfo.flying;
-                    FakePlayerSerializer.applyActionPackFromJson(botInfo.actions, instance);
+                    PlayerActionPack actionPack = SiliconeDolls.GSON.fromJson(botInfo.actions, PlayerActionPack.class);
+                    ((ServerPlayerInjector) instance).getActionPack().copyFrom(actionPack);
                 }, BOT_INFO.server);
                 success = true;
             }finally {
@@ -348,7 +349,7 @@ public class BotCommand {
                 player.level().dimension(),
                 player.gameMode.getGameModeForPlayer(),
                 player.getAbilities().flying,
-                FakePlayerSerializer.actionPackToJson(((ServerPlayerInjector) player).getActionPack())
+                SiliconeDolls.GSON.toJsonTree(((ServerPlayerInjector) player).getActionPack()).getAsJsonObject()
             )
         );
         BOT_INFO.save();

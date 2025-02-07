@@ -1,5 +1,13 @@
 package dev.anvilcraft.rg.sd.entity;
 
+import com.google.gson.JsonDeserializationContext;
+import com.google.gson.JsonDeserializer;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParseException;
+import com.google.gson.JsonSerializationContext;
+import com.google.gson.JsonSerializer;
+import dev.anvilcraft.rg.sd.SiliconeDolls;
 import dev.anvilcraft.rg.sd.util.ServerPlayerInjector;
 import dev.anvilcraft.rg.sd.util.Tracer;
 import lombok.Getter;
@@ -27,14 +35,17 @@ import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec2;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
+import java.lang.reflect.Type;
 import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
 @Getter
 @SuppressWarnings({"unused", "UnusedReturnValue", "resource", "SameParameterValue"})
-public class PlayerActionPack{
+public class PlayerActionPack {
     private final ServerPlayer player;
     private final Map<ActionType, Action> actions = new EnumMap<>(ActionType.class);
     private BlockPos currentBlock;
@@ -50,7 +61,7 @@ public class PlayerActionPack{
 
     public PlayerActionPack(ServerPlayer playerIn) {
         player = playerIn;
-        stopAll();
+        if (player != null) stopAll();
     }
 
     public void copyFrom(@NotNull PlayerActionPack other) {
@@ -60,10 +71,10 @@ public class PlayerActionPack{
         isHittingBlock = other.isHittingBlock;
         curBlockDamageMP = other.curBlockDamageMP;
 
-        sneaking = other.sneaking;
-        sprinting = other.sprinting;
-        forward = other.forward;
-        strafing = other.strafing;
+        this.setSneaking(other.sneaking);
+        this.setSprinting(other.sprinting);
+        this.setForward(other.forward);
+        this.setStrafing(other.strafing);
 
         itemUseCooldown = other.itemUseCooldown;
     }
@@ -252,6 +263,86 @@ public class PlayerActionPack{
     public void setSlot(int slot) {
         player.getInventory().selected = slot - 1;
         player.connection.send(new ClientboundSetCarriedItemPacket(slot - 1));
+    }
+
+    public static class Serializer implements JsonDeserializer<PlayerActionPack>, JsonSerializer<PlayerActionPack> {
+        @Override
+        public PlayerActionPack deserialize(@NotNull JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
+            try {
+                JsonObject object = json.getAsJsonObject();
+                PlayerActionPack pack = new PlayerActionPack(null);
+                if (object.has("actions")) {
+                    JsonObject actions = object.getAsJsonObject("actions");
+                    for (Map.Entry<String, JsonElement> entry : actions.entrySet()) {
+                        ActionType type = ActionType.fromString(entry.getKey());
+                        if (type == null) continue;
+                        Action action = SiliconeDolls.GSON.fromJson(entry.getValue(), Action.class);
+                        pack.start(type, action);
+                    }
+                }
+                if (object.has("current_block")) {
+                    JsonObject currentBlock = object.get("current_block").getAsJsonObject();
+                    pack.currentBlock = new BlockPos(currentBlock.get("x").getAsInt(), currentBlock.get("y").getAsInt(), currentBlock.get("z").getAsInt());
+                }
+                if (object.has("block_hit_delay")) {
+                    pack.blockHitDelay = object.get("block_hit_delay").getAsInt();
+                }
+                if (object.has("is_hitting_block")) {
+                    pack.isHittingBlock = object.get("is_hitting_block").getAsBoolean();
+                }
+                if (object.has("cur_block_damage_mp")) {
+                    pack.curBlockDamageMP = object.get("cur_block_damage_mp").getAsFloat();
+                }
+                if (object.has("sneaking")) {
+                    pack.sneaking = object.get("sneaking").getAsBoolean();
+                }
+                if (object.has("sprinting")) {
+                    pack.sprinting = object.get("sprinting").getAsBoolean();
+                }
+                if (object.has("forward")) {
+                    pack.forward = object.get("forward").getAsFloat();
+                }
+                if (object.has("strafing")) {
+                    pack.strafing = object.get("strafing").getAsFloat();
+                }
+                if (object.has("item_use_cooldown")) {
+                    pack.itemUseCooldown = object.get("item_use_cooldown").getAsInt();
+                }
+                return pack;
+            } catch (Exception e) {
+                SiliconeDolls.LOGGER.error("Error deserializing PlayerActionPack", e);
+            }
+            return null;
+        }
+
+        @Override
+        public JsonElement serialize(@NotNull PlayerActionPack src, Type typeOfSrc, JsonSerializationContext context) {
+            JsonObject object = new JsonObject();
+            JsonObject actions = new JsonObject();
+            for (Map.Entry<ActionType, Action> entry : src.actions.entrySet()) {
+                ActionType type = entry.getKey();
+                Action action = entry.getValue();
+                if (action.done) continue;
+                actions.add(type.toString(), SiliconeDolls.GSON.toJsonTree(action));
+            }
+            object.add("actions", actions);
+            if (src.currentBlock != null) {
+                JsonObject currentBlock = new JsonObject();
+                currentBlock.addProperty("x", src.currentBlock.getX());
+                currentBlock.addProperty("y", src.currentBlock.getY());
+                currentBlock.addProperty("z", src.currentBlock.getZ());
+                object.add("current_block", currentBlock);
+            }
+            object.addProperty("block_hit_delay", src.blockHitDelay);
+            object.addProperty("is_hitting_block", src.isHittingBlock);
+            object.addProperty("cur_block_damage_mp", src.curBlockDamageMP);
+            object.addProperty("sneaking", src.sneaking);
+            object.addProperty("sprinting", src.sprinting);
+            object.addProperty("forward", src.forward);
+            object.addProperty("strafing", src.strafing);
+            object.addProperty("item_use_cooldown", src.itemUseCooldown);
+            return object;
+        }
     }
 
     public enum ActionType {
@@ -454,6 +545,18 @@ public class PlayerActionPack{
             inactiveTick(player, action);
         }
 
+        @Override
+        public String toString() {
+            return name().toLowerCase();
+        }
+
+        public static @Nullable ActionType fromString(@NotNull String name) {
+            try {
+                return ActionType.valueOf(name.toUpperCase());
+            } catch (IllegalArgumentException e) {
+                return null;
+            }
+        }
     }
 
     public static class Action {
@@ -484,7 +587,6 @@ public class PlayerActionPack{
         public static @NotNull Action interval(int interval) {
             return new Action(-1, interval, 0, true);
         }
-
 
         Boolean tick(PlayerActionPack actionPack, ActionType type) {
             next--;
@@ -521,6 +623,32 @@ public class PlayerActionPack{
             if (count != limit) return;
             type.stop(actionPack.player, null);
             done = true;
+        }
+
+        public static class Serializer implements JsonDeserializer<Action>, JsonSerializer<Action> {
+            @Override
+            public Action deserialize(@NotNull JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
+                if (!json.isJsonObject()) return Action.once();
+                JsonObject object = json.getAsJsonObject();
+                try {
+                    int limit = object.get("limit").getAsInt();
+                    int interval = object.get("interval").getAsInt();
+                    int offset = object.get("offset").getAsInt();
+                    return new Action(limit, interval, offset, object.get("continuous").getAsBoolean());
+                } catch (Exception e) {
+                    return Action.once();
+                }
+            }
+
+            @Override
+            public JsonElement serialize(@NotNull Action src, Type typeOfSrc, JsonSerializationContext context) {
+                JsonObject object = new JsonObject();
+                object.addProperty("limit", src.limit);
+                object.addProperty("interval", src.interval);
+                object.addProperty("offset", src.offset);
+                object.addProperty("continuous", src.isContinuous);
+                return object;
+            }
         }
     }
 }
