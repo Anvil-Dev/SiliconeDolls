@@ -8,11 +8,10 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Map;
 
-@SuppressWarnings("unchecked")
 public class FakePlayerSerializer {
     public static @NotNull JsonObject actionPackToJson(PlayerActionPack actionPack) {
         JsonObject object = new JsonObject();
-        Map<PlayerActionPack.ActionType, PlayerActionPack.Action> actions = (Map<PlayerActionPack.ActionType, PlayerActionPack.Action>)actionPack.getter("action");
+        Map<PlayerActionPack.ActionType, PlayerActionPack.Action> actions = actionPack.getActions();
         PlayerActionPack.Action attack = actions.get(PlayerActionPack.ActionType.ATTACK);
         PlayerActionPack.Action use = actions.get(PlayerActionPack.ActionType.USE);
         PlayerActionPack.Action jump = actions.get(PlayerActionPack.ActionType.JUMP);
@@ -26,10 +25,10 @@ public class FakePlayerSerializer {
         if (jump != null && !jump.done) {
             object.addProperty("jump", jump.interval * ((jump.isContinuous) ? -1 : 1));
         }
-        object.addProperty("sneaking", (boolean)actionPack.getter("sneaking"));
-        object.addProperty("sprinting", (boolean)actionPack.getter("sprinting"));
-        object.addProperty("forward", (float)actionPack.getter("forward"));
-        object.addProperty("strafing", (float)actionPack.getter("strafing"));
+        object.addProperty("sneaking", actionPack.isSneaking());
+        object.addProperty("sprinting", actionPack.isSprinting());
+        object.addProperty("forward", actionPack.getForward());
+        object.addProperty("strafing", actionPack.getStrafing());
         return object;
     }
 

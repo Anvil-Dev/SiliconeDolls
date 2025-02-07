@@ -2,6 +2,7 @@ package dev.anvilcraft.rg.sd.entity;
 
 import dev.anvilcraft.rg.sd.util.ServerPlayerInjector;
 import dev.anvilcraft.rg.sd.util.Tracer;
+import lombok.Getter;
 import net.minecraft.commands.arguments.EntityAnchorArgument;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -31,9 +32,9 @@ import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
+@Getter
 @SuppressWarnings({"unused", "UnusedReturnValue", "resource", "SameParameterValue"})
-public class PlayerActionPack {
+public class PlayerActionPack{
     private final ServerPlayer player;
     private final Map<ActionType, Action> actions = new EnumMap<>(ActionType.class);
     private BlockPos currentBlock;
@@ -50,23 +51,6 @@ public class PlayerActionPack {
     public PlayerActionPack(ServerPlayer playerIn) {
         player = playerIn;
         stopAll();
-    }
-
-    public Object getter(String name){
-        return switch (name) {
-            case "player" -> this.player;
-            case "action" -> this.actions;
-            case "currentBlock" -> this.currentBlock;
-            case "blockHitDelay" -> this.blockHitDelay;
-            case "isHittingBlock" -> this.isHittingBlock;
-            case "curBlockDamageMP" -> this.curBlockDamageMP;
-            case "sneaking" -> this.sneaking;
-            case "sprinting" -> this.sprinting;
-            case "forward" -> this.forward;
-            case "strafing" -> this.strafing;
-            case "itemUseCooldown" -> this.itemUseCooldown;
-            case null, default -> null;
-        };
     }
 
     public void copyFrom(@NotNull PlayerActionPack other) {
