@@ -79,6 +79,8 @@ jobs:
 #          java: 21
 #          fail-mode: skip
 #          changelog: ${{ github.event.release.body }}
+#          dependencies: |
+#            rolling_gate@1.0.0+build.32(required){modrinth:HXsmHiKu}{curseforge:1194894}
 #
 #          modrinth-id:
 #          modrinth-token: ${{ secrets.MODRINTH_TOKEN }}

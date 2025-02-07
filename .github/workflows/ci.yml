@@ -85,6 +85,8 @@ jobs:
 #          version-type: "alpha"
 #          java: 21
 #          fail-mode: skip
+#          dependencies: |
+#            rolling_gate@1.0.0+build.32(required){modrinth:HXsmHiKu}{curseforge:1194894}
 #
 #          modrinth-id:
 #          modrinth-token: ${{ secrets.MODRINTH_TOKEN }}
