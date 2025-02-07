@@ -31,7 +31,7 @@ jobs:
         uses: christian-draeger/read-properties@1.1.1
         with:
           path: gradle.properties
-          properties: 'mod_id mod_name java_version'
+          properties: 'mod_id mod_name java_version rolling_gate_version'
 
       - name: Setup Java ${{ steps.properties.outputs.java_version }}
         uses: actions/setup-java@v3.6.0
@@ -86,7 +86,7 @@ jobs:
 #          java: 21
 #          fail-mode: skip
 #          dependencies: |
-#            rolling_gate@1.0.0+build.32(required){modrinth:HXsmHiKu}{curseforge:1194894}
+#            rolling_gate@${{ steps.properties.outputs.rolling_gate_version }}(required){modrinth:HXsmHiKu}{curseforge:1194894}
 #
 #          modrinth-id:
 #          modrinth-token: ${{ secrets.MODRINTH_TOKEN }}
