@@ -2,6 +2,7 @@ package dev.anvilcraft.rg.sd.entity;
 
 import dev.anvilcraft.rg.sd.util.ServerPlayerInjector;
 import dev.anvilcraft.rg.sd.util.Tracer;
+import lombok.Getter;
 import net.minecraft.commands.arguments.EntityAnchorArgument;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -31,17 +32,15 @@ import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
+@Getter
 @SuppressWarnings({"unused", "UnusedReturnValue", "resource", "SameParameterValue"})
-public class PlayerActionPack {
+public class PlayerActionPack{
     private final ServerPlayer player;
     private final Map<ActionType, Action> actions = new EnumMap<>(ActionType.class);
-
     private BlockPos currentBlock;
     private int blockHitDelay;
     private boolean isHittingBlock;
     private float curBlockDamageMP;
-
     private boolean sneaking;
     private boolean sprinting;
     private float forward;
@@ -462,9 +461,9 @@ public class PlayerActionPack {
         public final int limit;
         public final int interval;
         public final int offset;
-        private int count;
-        private int next;
-        private final boolean isContinuous;
+        public int count;
+        public int next;
+        public final boolean isContinuous;
 
         private Action(int limit, int interval, int offset, boolean continuous) {
             this.limit = limit;
