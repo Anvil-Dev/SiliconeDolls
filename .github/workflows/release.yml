@@ -11,7 +11,7 @@ jobs:
     env:
       CI_BUILD: false
       PR_BUILD: false
-      VERSION_TYPE: ${{ github.event.release.prerelease && 'alpha' || 'release' }}
+      VERSION_TYPE: ${{ github.event.release.prerelease && 'beta' || 'release' }}
     steps:
       - name: checkout
         uses: actions/checkout@v4
@@ -68,22 +68,25 @@ jobs:
           MAVEN_PASSWORD: ${{ secrets.MAVEN_PASS }}
         continue-on-error: true
 
-      - name: publish neoforge mc mod
-        uses: Kir-Antipov/mc-publish@v3.3
-        continue-on-error: true
-        with:
-          name: "${{ steps.properties.outputs.mod_name }} For NeoForge v${{ steps.version.outputs.version }}"
-          version: ${{ steps.version.outputs.version }}
-          game-versions: 1.21.1
-          version-type: ${{ env.VERSION_TYPE }}
-          java: 21
-          fail-mode: skip
-          changelog: ${{ github.event.release.body }}
-
-          modrinth-id: woulhAPh
-          modrinth-token: ${{ secrets.MODRINTH_TOKEN }}
-          modrinth-featured: true
-
-          files: |
-            build/libs/${{ steps.properties.outputs.mod_name }}-neoforge-${{ steps.version.outputs.version }}.jar
-            build/libs/${{ steps.properties.outputs.mod_name }}-neoforge-${{ steps.version.outputs.version }}-sources.jar
+#      - name: publish neoforge mc mod
+#        uses: Kir-Antipov/mc-publish@v3.3
+#        continue-on-error: true
+#        with:
+#          name: "${{ steps.properties.outputs.mod_name }} For NeoForge v${{ steps.version.outputs.version }}"
+#          version: ${{ steps.version.outputs.version }}
+#          game-versions: 1.21.1
+#          version-type: ${{ env.VERSION_TYPE }}
+#          java: 21
+#          fail-mode: skip
+#          changelog: ${{ github.event.release.body }}
+#
+#          modrinth-id:
+#          modrinth-token: ${{ secrets.MODRINTH_TOKEN }}
+#          modrinth-featured: true
+#
+#          curseforge-id:
+#          curseforge-token: ${{ secrets.CURSEFORGE_TOKEN }}
+#
+#          files: |
+#            build/libs/${{ steps.properties.outputs.mod_name }}-neoforge-${{ steps.version.outputs.version }}.jar
+#            build/libs/${{ steps.properties.outputs.mod_name }}-neoforge-${{ steps.version.outputs.version }}-sources.jar
