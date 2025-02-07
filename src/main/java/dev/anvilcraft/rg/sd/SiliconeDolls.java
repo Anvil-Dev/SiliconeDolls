@@ -1,7 +1,15 @@
 package dev.anvilcraft.rg.sd;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.mojang.logging.LogUtils;
 import dev.anvilcraft.rg.sd.init.ModCommands;
+import dev.anvilcraft.rg.tools.WelcomeMessage;
+import dev.anvilcraft.rg.tools.serializer.ChatFormattingSerializer;
+import dev.anvilcraft.rg.tools.serializer.DimTypeSerializer;
+import net.minecraft.ChatFormatting;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.ResourceLocation;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
@@ -12,6 +20,13 @@ import org.slf4j.Logger;
 
 @Mod(SiliconeDolls.MODID)
 public class SiliconeDolls {
+    public static final Gson GSON = new GsonBuilder()
+        .setPrettyPrinting()
+        .registerTypeHierarchyAdapter(ResourceKey.class, new DimTypeSerializer())
+        .registerTypeHierarchyAdapter(ResourceLocation.class, new ResourceLocation.Serializer())
+        .registerTypeHierarchyAdapter(ChatFormatting.class, new ChatFormattingSerializer())
+        .registerTypeHierarchyAdapter(WelcomeMessage.MessageData.class, new WelcomeMessage.MessageData.Serializer())
+        .create();
     public static final String MODID = "silicone_dolls";
     public static final Logger LOGGER = LogUtils.getLogger();
 
@@ -21,5 +36,6 @@ public class SiliconeDolls {
 
     public void registerCommands(@NotNull RegisterCommandsEvent event) {
         ModCommands.register(event.getDispatcher());
+
     }
 }

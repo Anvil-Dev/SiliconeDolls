@@ -3,6 +3,7 @@ package dev.anvilcraft.rg.sd.init;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.suggestion.SuggestionProvider;
+import dev.anvilcraft.rg.sd.command.BotCommand;
 import dev.anvilcraft.rg.sd.command.PlayerCommand;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.SharedSuggestionProvider;
@@ -15,6 +16,7 @@ import java.util.function.BiFunction;
 public class ModCommands {
     public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
         PlayerCommand.register(dispatcher);
+        BotCommand.register(dispatcher);
     }
 
     public static @NotNull SuggestionProvider<CommandSourceStack> suggest(String... strings) {
