@@ -116,6 +116,8 @@ public class BotCommand {
         );
     }
 
+
+
     public record BotInfo(
         String name,
         String desc,
