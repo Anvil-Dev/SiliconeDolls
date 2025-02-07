@@ -2,36 +2,74 @@ package dev.anvilcraft.rg.sd.command;
 
 import com.google.gson.JsonObject;
 import com.google.gson.annotations.SerializedName;
+import com.mojang.authlib.GameProfile;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
+import com.mojang.brigadier.context.CommandContext;
+import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import com.mojang.brigadier.suggestion.Suggestions;
+import com.mojang.brigadier.suggestion.SuggestionsBuilder;
 import dev.anvilcraft.rg.api.RGValidator;
+import dev.anvilcraft.rg.sd.SiliconeDolls;
 import dev.anvilcraft.rg.sd.SiliconeDollsServerRules;
+import dev.anvilcraft.rg.sd.entity.FakeClientConnection;
+import dev.anvilcraft.rg.sd.entity.FakePlayer;
+import dev.anvilcraft.rg.sd.init.ModCommands;
+import dev.anvilcraft.rg.sd.mixin.EntityInvoker;
+import dev.anvilcraft.rg.sd.mixin.PlayerAccessor;
+import dev.anvilcraft.rg.sd.tools.FakePlayerSerializer;
 import dev.anvilcraft.rg.sd.tools.FilesUtil;
+import dev.anvilcraft.rg.sd.util.ServerPlayerInjector;
+import net.minecraft.ChatFormatting;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
+import net.minecraft.commands.SharedSuggestionProvider;
 import net.minecraft.commands.arguments.EntityArgument;
+import net.minecraft.core.UUIDUtil;
+import net.minecraft.network.chat.ClickEvent;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.HoverEvent;
+import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.network.chat.Style;
+import net.minecraft.network.protocol.PacketFlow;
+import net.minecraft.network.protocol.game.ClientboundRotateHeadPacket;
+import net.minecraft.network.protocol.game.ClientboundTeleportEntityPacket;
 import net.minecraft.resources.ResourceKey;
+import net.minecraft.server.level.ClientInformation;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.network.CommonListenerCookie;
+import net.minecraft.server.players.GameProfileCache;
+import net.minecraft.world.entity.ai.attributes.AttributeInstance;
+import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.entity.SkullBlockEntity;
 import net.minecraft.world.phys.Vec2;
 import net.minecraft.world.phys.Vec3;
+import net.neoforged.neoforge.network.connection.ConnectionType;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.function.Consumer;
 
 public class BotCommand {
     public static final FilesUtil.MapFile<String, BotInfo> BOT_INFO = new FilesUtil.MapFile<>("bot", Object::toString, BotInfo.class);
     public static final FilesUtil.MapFile<String, BotGroupInfo> BOT_GROUP_INFO = new FilesUtil.MapFile<>("botGroup", Object::toString, BotGroupInfo.class);
 
-    public static void register(@NotNull CommandDispatcher<CommandSourceStack> dispatcher){
+    public static void register(@NotNull CommandDispatcher<CommandSourceStack> dispatcher) {
         dispatcher.register(
             Commands.literal("bot")
+                .executes(BotCommand::list)
                 .requires(source -> RGValidator.CommandRuleValidator.hasPermission(() -> SiliconeDollsServerRules.commandBotList, source))
                 .then(
                     Commands.literal("list")
+                        .executes(BotCommand::list)
                         .then(
                             Commands.argument("page", IntegerArgumentType.integer(1))
+                                .executes(BotCommand::list)
                         )
                 )
                 .then(
@@ -40,6 +78,7 @@ public class BotCommand {
                             Commands.argument("player", EntityArgument.player())
                                 .then(
                                     Commands.argument("desc", StringArgumentType.greedyString())
+                                        .executes(BotCommand::add)
                                 )
                         )
                 )
@@ -47,6 +86,8 @@ public class BotCommand {
                     Commands.literal("load")
                         .then(
                             Commands.argument("player", StringArgumentType.string())
+                                .suggests(BotCommand::suggestPlayer)
+                                .executes(BotCommand::load)
                         )
                 )
                 .then(
@@ -114,6 +155,193 @@ public class BotCommand {
                         )
                 )
         );
+    }
+
+    private static int list(CommandContext<CommandSourceStack> context) {
+        BOT_INFO.init(context);
+        int page;
+        try {
+            page = IntegerArgumentType.getInteger(context, "page");
+        } catch (IllegalArgumentException ignored) {
+            page = 1;
+        }
+        final int pageSize = 8;
+        int size = BOT_INFO.map.size();
+        int maxPage = size / pageSize + 1;
+        if (page > maxPage) {
+            context.getSource().sendFailure(Component.literal("No such page %s".formatted(page)));
+            return 0;
+        }
+        BotInfo[] botInfos = BOT_INFO.map.values().toArray(new BotInfo[0]);
+        context.getSource().sendSystemMessage(
+            Component.literal("======= Bot List (Page %s/%s) =======".formatted(page, maxPage))
+                .withStyle(ChatFormatting.YELLOW)
+        );
+        for (int i = (page - 1) * pageSize; i < size && i < page * pageSize; i++) {
+            context.getSource().sendSystemMessage(botToComponent(botInfos[i]));
+        }
+        listComponent(context, page, maxPage, "/bot list");
+        return 1;
+    }
+
+    private static @NotNull MutableComponent botToComponent(@NotNull BotInfo botInfo) {
+        MutableComponent desc = Component.literal(botInfo.desc).withStyle(
+            Style.EMPTY
+                .applyFormat(ChatFormatting.GRAY)
+                .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Component.literal(botInfo.name)))
+        );
+        boolean notOnline = BOT_INFO.server.getPlayerList().getPlayerByName(botInfo.name) == null;
+        MutableComponent load = Component.literal("[↑]").withStyle(
+            Style.EMPTY
+                .applyFormat(notOnline ? ChatFormatting.GREEN : ChatFormatting.GRAY)
+                .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Component.literal("Load bot")))
+                .withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/bot load %s".formatted(botInfo.name)))
+        );
+        MutableComponent remove = Component.literal("[↓]").withStyle(
+            Style.EMPTY
+                .applyFormat(notOnline ? ChatFormatting.GRAY : ChatFormatting.RED)
+                .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Component.literal("Unload bot")))
+                .withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/player %s kill".formatted(botInfo.name)))
+        );
+        MutableComponent delete = Component.literal("[\uD83D\uDDD1]").withStyle(
+            Style.EMPTY
+                .applyFormat(ChatFormatting.RED)
+                .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Component.literal("Remove bot")))
+                .withClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, "/bot remove %s".formatted(botInfo.name)))
+        );
+        MutableComponent component = Component.literal("▶ ")
+            .withStyle(notOnline ? ChatFormatting.RED : ChatFormatting.GREEN)
+            .append(desc);
+        component.append(" ").append(load);
+        component.append(" ").append(remove);
+        return component.append(" ").append(delete);
+    }
+
+    private static void listComponent(@NotNull CommandContext<CommandSourceStack> context, int page, int maxPage, String command) {
+        Component prevPage = page <= 1 ?
+            Component.literal("<<<").withStyle(ChatFormatting.GRAY) :
+            Component.literal("<<<").withStyle(
+                Style.EMPTY
+                    .applyFormat(ChatFormatting.GREEN)
+                    .withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, command + " " + (page - 1)))
+            );
+        Component nextPage = page >= maxPage ?
+            Component.literal(">>>").withStyle(ChatFormatting.GRAY) :
+            Component.literal(">>>").withStyle(
+                Style.EMPTY
+                    .applyFormat(ChatFormatting.GREEN)
+                    .withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, command + " " + (page + 1)))
+            );
+        context.getSource().sendSystemMessage(
+            Component.literal("=======")
+                .withStyle(ChatFormatting.YELLOW)
+                .append(" ")
+                .append(prevPage)
+                .append(" ")
+                .append(Component.literal("(Page %s/%s)".formatted(page, maxPage)).withStyle(ChatFormatting.YELLOW))
+                .append(" ")
+                .append(nextPage)
+                .append(" ")
+                .append(Component.literal("=======").withStyle(ChatFormatting.YELLOW))
+        );
+    }
+
+    private static @NotNull CompletableFuture<Suggestions> suggestPlayer(final CommandContext<CommandSourceStack> context, final SuggestionsBuilder builder) {
+        return SharedSuggestionProvider.suggest(BOT_INFO.map.keySet(), builder);
+    }
+
+    private static boolean load(String name, Consumer<Component> failure) {
+        if (BOT_INFO.server.getPlayerList().getPlayerByName(name) != null) {
+            failure.accept(Component.literal("player %s is already exist.".formatted(name)));
+            return false;
+        }
+        BotInfo botInfo = BOT_INFO.map.getOrDefault(name, null);
+        if (botInfo == null) {
+            failure.accept(Component.literal("%s is not exist."));
+            return false;
+        }
+        boolean success = false;
+        try {
+            ServerLevel worldIn = BOT_INFO.server.getLevel(botInfo.dimType);
+            GameProfileCache.setUsesAuthentication(false);
+            GameProfile gameprofile;
+            try {
+                GameProfileCache profileCache = BOT_INFO.server.getProfileCache();
+                if (profileCache == null) gameprofile = null;
+                else gameprofile = profileCache.get(name).orElse(null);
+                if (gameprofile == null) {
+                    if (!SiliconeDollsServerRules.allowSpawningOfflinePlayers) return false;
+                    gameprofile = new GameProfile(UUIDUtil.createOfflinePlayerUUID(name), name);
+                }
+                GameProfile finalGP = gameprofile;
+                SkullBlockEntity.fetchGameProfile(gameprofile.getName()).thenAcceptAsync((p) ->{
+                    GameProfile current = finalGP;
+                    if (p.isPresent()) current = p.get();
+                    if (worldIn == null) return;
+                    FakePlayer instance = FakePlayer.create(BOT_INFO.server, worldIn, current, ClientInformation.createDefault(),false);
+                    instance.fixStartingPosition = () -> instance.moveTo(botInfo.pos.x, botInfo.pos.y, botInfo.pos.z, botInfo.facing.y, botInfo.facing.x);
+                    BOT_INFO.server.getPlayerList().placeNewPlayer(new FakeClientConnection(PacketFlow.SERVERBOUND), instance, new CommonListenerCookie(current, 0, instance.clientInformation(), false, ConnectionType.OTHER));
+                    instance.teleportTo(worldIn, botInfo.pos.x, botInfo.pos.y, botInfo.pos.z, botInfo.facing.y, botInfo.facing.x);
+                    instance.setHealth(20.0F);
+                    ((EntityInvoker) instance).invokerUnsetRemoved();
+                    AttributeInstance attribute = instance.getAttribute(Attributes.STEP_HEIGHT);
+                    if (attribute != null) attribute.setBaseValue(0.6000000238418579);
+                    instance.gameMode.changeGameModeForPlayer(botInfo.mode);
+                    BOT_INFO.server.getPlayerList().broadcastAll(new ClientboundRotateHeadPacket(instance, (byte) ((int) (instance.yHeadRot * 256.0F / 360.0F))), botInfo.dimType);
+                    BOT_INFO.server.getPlayerList().broadcastAll(new ClientboundTeleportEntityPacket(instance), botInfo.dimType);
+                    instance.getEntityData().set(PlayerAccessor.getCustomisationData(), (byte) 127);
+                    instance.getAbilities().flying = botInfo.flying;
+                    FakePlayerSerializer.applyActionPackFromJson(botInfo.actions, instance);
+                }, BOT_INFO.server);
+                success = true;
+            }finally {
+                GameProfileCache.setUsesAuthentication(BOT_INFO.server.isDedicatedServer() && BOT_INFO.server.usesAuthentication());
+            }
+        }catch (Exception e) {
+            SiliconeDolls.LOGGER.error(e.getMessage(), e);
+        }
+        if (!success) failure.accept(Component.literal("%s is not loaded.".formatted(name)));
+        return success;
+    }
+
+    private static int load(CommandContext<CommandSourceStack> context) {
+        BOT_INFO.init(context);
+        CommandSourceStack source = context.getSource();
+        String name = ModCommands.getArg(context, "player", StringArgumentType::getString);
+        boolean success = load(name, source::sendFailure);
+        return success ? 1 : 0;
+    }
+
+    @SuppressWarnings("resource")
+    private static int add(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        BOT_INFO.init(context);
+        CommandSourceStack source = context.getSource();
+        ServerPlayer p;
+        if (!((p = EntityArgument.getPlayer(context, "player")) instanceof FakePlayer player)) {
+            source.sendFailure(Component.literal("%s is not a fake player.".formatted(p.getGameProfile().getName())));
+            return 0;
+        }
+        String name = player.getGameProfile().getName();
+        if (BOT_INFO.map.containsKey(name)) {
+            source.sendFailure(Component.literal("%s is already save.".formatted(name)));
+            return 0;
+        }
+        BotCommand.BOT_INFO.map.put(
+            name,
+            new BotInfo(
+                name,
+                StringArgumentType.getString(context, "desc"),
+                player.position(),
+                player.getRotationVector(),
+                player.level().dimension(),
+                player.gameMode.getGameModeForPlayer(),
+                player.getAbilities().flying,
+                FakePlayerSerializer.actionPackToJson(((ServerPlayerInjector) player).getActionPack())
+            )
+        );
+        BOT_INFO.save();
+        source.sendSuccess(() -> Component.literal("%s is added.".formatted(name)), false);
+        return 1;
     }
 
 

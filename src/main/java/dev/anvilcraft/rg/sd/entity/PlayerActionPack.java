@@ -36,12 +36,10 @@ import java.util.Map;
 public class PlayerActionPack {
     private final ServerPlayer player;
     private final Map<ActionType, Action> actions = new EnumMap<>(ActionType.class);
-
     private BlockPos currentBlock;
     private int blockHitDelay;
     private boolean isHittingBlock;
     private float curBlockDamageMP;
-
     private boolean sneaking;
     private boolean sprinting;
     private float forward;
@@ -52,6 +50,23 @@ public class PlayerActionPack {
     public PlayerActionPack(ServerPlayer playerIn) {
         player = playerIn;
         stopAll();
+    }
+
+    public Object getter(String name){
+        return switch (name) {
+            case "player" -> this.player;
+            case "action" -> this.actions;
+            case "currentBlock" -> this.currentBlock;
+            case "blockHitDelay" -> this.blockHitDelay;
+            case "isHittingBlock" -> this.isHittingBlock;
+            case "curBlockDamageMP" -> this.curBlockDamageMP;
+            case "sneaking" -> this.sneaking;
+            case "sprinting" -> this.sprinting;
+            case "forward" -> this.forward;
+            case "strafing" -> this.strafing;
+            case "itemUseCooldown" -> this.itemUseCooldown;
+            case null, default -> null;
+        };
     }
 
     public void copyFrom(@NotNull PlayerActionPack other) {
@@ -462,9 +477,9 @@ public class PlayerActionPack {
         public final int limit;
         public final int interval;
         public final int offset;
-        private int count;
-        private int next;
-        private final boolean isContinuous;
+        public int count;
+        public int next;
+        public final boolean isContinuous;
 
         private Action(int limit, int interval, int offset, boolean continuous) {
             this.limit = limit;
