@@ -99,71 +99,71 @@ public class BotCommand {
                                 .executes(BotCommand::remove)
                         )
                 )
-        );
-        dispatcher.register(
-            Commands.literal("botGroup")
-                .requires(source -> RGValidator.CommandRuleValidator.hasPermission(() -> SiliconeDollsServerRules.commandBotList, source))
                 .then(
-                    Commands.literal("create")
+                    Commands.literal("group")
+                        .requires(source -> RGValidator.CommandRuleValidator.hasPermission(() -> SiliconeDollsServerRules.commandBotList, source))
                         .then(
-                            Commands.argument("name", StringArgumentType.greedyString())
-                                .executes(BotCommand::groupCreate)
+                            Commands.literal("create")
+                                .then(
+                                    Commands.argument("name", StringArgumentType.greedyString())
+                                        .executes(BotCommand::groupCreate)
+                                )
                         )
-                )
-                .then(
-                    Commands.literal("list")
-                        .executes(BotCommand::groupList)
                         .then(
-                            Commands.argument("page", IntegerArgumentType.integer(1))
+                            Commands.literal("list")
                                 .executes(BotCommand::groupList)
-                        )
-                )
-                .then(
-                    Commands.literal("remove")
-                        .then(
-                            Commands.argument("name", StringArgumentType.greedyString())
-                                .executes(BotCommand::groupRemove)
-                        )
-                )
-                .then(
-                    Commands.literal("add")
-                        .then(
-                            Commands.argument("bot", StringArgumentType.string())
                                 .then(
-                                    Commands.argument("group", StringArgumentType.greedyString())
-                                        .executes(BotCommand::groupAddBot)
+                                    Commands.argument("page", IntegerArgumentType.integer(1))
+                                        .executes(BotCommand::groupList)
                                 )
                         )
-                )
-                .then(
-                    Commands.literal("remove")
                         .then(
-                            Commands.argument("bot", StringArgumentType.string())
+                            Commands.literal("remove")
                                 .then(
-                                    Commands.argument("group", StringArgumentType.greedyString())
-                                        .executes(BotCommand::groupRemoveBot)
+                                    Commands.argument("name", StringArgumentType.greedyString())
+                                        .executes(BotCommand::groupRemove)
                                 )
                         )
-                )
-                .then(
-                    Commands.literal("load")
                         .then(
-                            Commands.argument("group", StringArgumentType.greedyString())
-                                .executes(BotCommand::groupLoadBot)
+                            Commands.literal("add")
+                                .then(
+                                    Commands.argument("bot", StringArgumentType.string())
+                                        .then(
+                                            Commands.argument("group", StringArgumentType.greedyString())
+                                                .executes(BotCommand::groupAddBot)
+                                        )
+                                )
                         )
-                )
-                .then(
-                    Commands.literal("unload")
                         .then(
-                            Commands.argument("group", StringArgumentType.greedyString())
-                                .executes(BotCommand::groupUnloadBot)
+                            Commands.literal("remove")
+                                .then(
+                                    Commands.argument("bot", StringArgumentType.string())
+                                        .then(
+                                            Commands.argument("group", StringArgumentType.greedyString())
+                                                .executes(BotCommand::groupRemoveBot)
+                                        )
+                                )
                         )
-                )
-                .then(
-                    Commands.literal("info")
                         .then(
-                            Commands.argument("group", StringArgumentType.greedyString())
-                                .executes(BotCommand::groupInfo)
+                            Commands.literal("load")
+                                .then(
+                                    Commands.argument("group", StringArgumentType.greedyString())
+                                        .executes(BotCommand::groupLoadBot)
+                                )
+                        )
+                        .then(
+                            Commands.literal("unload")
+                                .then(
+                                    Commands.argument("group", StringArgumentType.greedyString())
+                                        .executes(BotCommand::groupUnloadBot)
+                                )
+                        )
+                        .then(
+                            Commands.literal("info")
+                                .then(
+                                    Commands.argument("group", StringArgumentType.greedyString())
+                                        .executes(BotCommand::groupInfo)
+                                )
                         )
                 )
         );
@@ -286,11 +286,11 @@ public class BotCommand {
                     gameprofile = new GameProfile(UUIDUtil.createOfflinePlayerUUID(name), name);
                 }
                 GameProfile finalGP = gameprofile;
-                SkullBlockEntity.fetchGameProfile(gameprofile.getName()).thenAcceptAsync((p) ->{
+                SkullBlockEntity.fetchGameProfile(gameprofile.getName()).thenAcceptAsync((p) -> {
                     GameProfile current = finalGP;
                     if (p.isPresent()) current = p.get();
                     if (worldIn == null) return;
-                    FakePlayer instance = FakePlayer.create(BOT_INFO.server, worldIn, current, ClientInformation.createDefault(),false);
+                    FakePlayer instance = FakePlayer.create(BOT_INFO.server, worldIn, current, ClientInformation.createDefault(), false);
                     instance.fixStartingPosition = () -> instance.moveTo(botInfo.pos.x, botInfo.pos.y, botInfo.pos.z, botInfo.facing.y, botInfo.facing.x);
                     BOT_INFO.server.getPlayerList().placeNewPlayer(new FakeClientConnection(PacketFlow.SERVERBOUND), instance, new CommonListenerCookie(current, 0, instance.clientInformation(), false, ConnectionType.OTHER));
                     instance.teleportTo(worldIn, botInfo.pos.x, botInfo.pos.y, botInfo.pos.z, botInfo.facing.y, botInfo.facing.x);
@@ -307,10 +307,10 @@ public class BotCommand {
                     ((ServerPlayerInjector) instance).getActionPack().copyFrom(actionPack);
                 }, BOT_INFO.server);
                 success = true;
-            }finally {
+            } finally {
                 GameProfileCache.setUsesAuthentication(BOT_INFO.server.isDedicatedServer() && BOT_INFO.server.usesAuthentication());
             }
-        }catch (Exception e) {
+        } catch (Exception e) {
             SiliconeDolls.LOGGER.error(e.getMessage(), e);
         }
         if (!success) failure.accept(Component.literal("%s is not loaded.".formatted(name)));
@@ -619,7 +619,6 @@ public class BotCommand {
         component.append(" ").append(info);
         return component.append(" ").append(delete);
     }
-
 
 
     public record BotInfo(
