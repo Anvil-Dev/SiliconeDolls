@@ -346,7 +346,8 @@ public class PlayerActionPack {
                         BlockHitResult blockHit = (BlockHitResult) hit;
                         BlockPos pos = blockHit.getBlockPos();
                         Direction side = blockHit.getDirection();
-                        if (player.blockActionRestricted(player.level(), pos, player.gameMode.getGameModeForPlayer())) return false;
+                        if (player.blockActionRestricted(player.level(), pos, player.gameMode.getGameModeForPlayer()))
+                            return false;
                         if (ap.currentBlock != null && player.level().getBlockState(ap.currentBlock).isAir()) {
                             ap.currentBlock = null;
                             return false;
@@ -453,6 +454,7 @@ public class PlayerActionPack {
         void stop(ServerPlayer player, Action action) {
             inactiveTick(player, action);
         }
+
     }
 
     public static class Action {
@@ -481,8 +483,9 @@ public class PlayerActionPack {
         }
 
         public static @NotNull Action interval(int interval) {
-            return new Action(-1, interval, 0, false);
+            return new Action(-1, interval, 0, true);
         }
+
 
         Boolean tick(PlayerActionPack actionPack, ActionType type) {
             next--;
