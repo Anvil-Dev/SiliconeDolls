@@ -3,6 +3,6 @@ package dev.anvilcraft.rg.sd.util;
 import dev.anvilcraft.rg.sd.entity.PlayerActionPack;
 import org.jetbrains.annotations.NotNull;
 
-public interface ServerPlayerInjector {
+public interface IServerPlayerInjector {
     @NotNull PlayerActionPack getActionPack();
 }

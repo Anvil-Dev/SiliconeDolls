@@ -19,7 +19,7 @@ import dev.anvilcraft.rg.sd.entity.PlayerActionPack;
 import dev.anvilcraft.rg.sd.init.ModCommands;
 import dev.anvilcraft.rg.sd.mixin.EntityInvoker;
 import dev.anvilcraft.rg.sd.mixin.PlayerAccessor;
-import dev.anvilcraft.rg.sd.util.ServerPlayerInjector;
+import dev.anvilcraft.rg.sd.util.IServerPlayerInjector;
 import dev.anvilcraft.rg.tools.FilesUtil;
 import net.minecraft.ChatFormatting;
 import net.minecraft.commands.CommandSourceStack;
@@ -304,7 +304,7 @@ public class BotCommand {
                     instance.getEntityData().set(PlayerAccessor.getCustomisationData(), (byte) 127);
                     instance.getAbilities().flying = botInfo.flying;
                     PlayerActionPack actionPack = SiliconeDolls.GSON.fromJson(botInfo.actions, PlayerActionPack.class);
-                    ((ServerPlayerInjector) instance).getActionPack().copyFrom(actionPack);
+                    ((IServerPlayerInjector) instance).getActionPack().copyFrom(actionPack);
                 }, BOT_INFO.server);
                 success = true;
             } finally {
@@ -349,7 +349,7 @@ public class BotCommand {
                 player.level().dimension(),
                 player.gameMode.getGameModeForPlayer(),
                 player.getAbilities().flying,
-                SiliconeDolls.GSON.toJsonTree(((ServerPlayerInjector) player).getActionPack()).getAsJsonObject()
+                SiliconeDolls.GSON.toJsonTree(((IServerPlayerInjector) player).getActionPack()).getAsJsonObject()
             )
         );
         BOT_INFO.save();

@@ -2,7 +2,7 @@ package dev.anvilcraft.rg.sd.mixin;
 
 import com.mojang.authlib.GameProfile;
 import dev.anvilcraft.rg.sd.entity.PlayerActionPack;
-import dev.anvilcraft.rg.sd.util.ServerPlayerInjector;
+import dev.anvilcraft.rg.sd.util.IServerPlayerInjector;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ClientInformation;
 import net.minecraft.server.level.ServerLevel;
@@ -15,7 +15,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(ServerPlayer.class)
-public class ServerPlayerMixin implements ServerPlayerInjector {
+abstract class ServerPlayerMixin implements IServerPlayerInjector {
     @Unique
     public PlayerActionPack siliconeDolls$actionPack;
 

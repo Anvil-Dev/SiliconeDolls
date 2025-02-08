@@ -10,7 +10,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(PlayerList.class)
-public class PlayerListMixin {
+abstract class PlayerListMixin {
     @Inject(method = "load", at = @At(value = "RETURN"))
     private void fixStartingPos(ServerPlayer serverPlayerEntity_1, CallbackInfoReturnable<CompoundTag> cir) {
         if (serverPlayerEntity_1 instanceof FakePlayer player) {

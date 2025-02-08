@@ -8,7 +8,7 @@ import com.google.gson.JsonParseException;
 import com.google.gson.JsonSerializationContext;
 import com.google.gson.JsonSerializer;
 import dev.anvilcraft.rg.sd.SiliconeDolls;
-import dev.anvilcraft.rg.sd.util.ServerPlayerInjector;
+import dev.anvilcraft.rg.sd.util.IServerPlayerInjector;
 import dev.anvilcraft.rg.sd.util.Tracer;
 import lombok.Getter;
 import net.minecraft.commands.arguments.EntityAnchorArgument;
@@ -350,7 +350,7 @@ public class PlayerActionPack {
         USE {
             @Override
             boolean execute(ServerPlayer player, Action action) {
-                PlayerActionPack ap = ((ServerPlayerInjector) player).getActionPack();
+                PlayerActionPack ap = ((IServerPlayerInjector) player).getActionPack();
                 if (ap.itemUseCooldown > 0) {
                     ap.itemUseCooldown--;
                     return true;
@@ -407,7 +407,7 @@ public class PlayerActionPack {
 
             @Override
             void inactiveTick(ServerPlayer player, Action action) {
-                PlayerActionPack ap = ((ServerPlayerInjector) player).getActionPack();
+                PlayerActionPack ap = ((IServerPlayerInjector) player).getActionPack();
                 ap.itemUseCooldown = 0;
                 player.releaseUsingItem();
             }
@@ -428,7 +428,7 @@ public class PlayerActionPack {
                         return true;
                     }
                     case BLOCK: {
-                        PlayerActionPack ap = ((ServerPlayerInjector) player).getActionPack();
+                        PlayerActionPack ap = ((IServerPlayerInjector) player).getActionPack();
                         if (ap.blockHitDelay > 0) {
                             ap.blockHitDelay--;
                             return false;
@@ -486,7 +486,7 @@ public class PlayerActionPack {
 
             @Override
             void inactiveTick(ServerPlayer player, Action action) {
-                PlayerActionPack ap = ((ServerPlayerInjector) player).getActionPack();
+                PlayerActionPack ap = ((IServerPlayerInjector) player).getActionPack();
                 if (ap.currentBlock == null) return;
                 player.level().destroyBlockProgress(-1, ap.currentBlock, -1);
                 player.gameMode.handleBlockBreakAction(ap.currentBlock, ServerboundPlayerActionPacket.Action.ABORT_DESTROY_BLOCK, Direction.DOWN, player.level().getMaxBuildHeight(), -1);

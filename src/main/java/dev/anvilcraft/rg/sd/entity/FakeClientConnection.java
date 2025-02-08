@@ -1,6 +1,6 @@
 package dev.anvilcraft.rg.sd.entity;
 
-import dev.anvilcraft.rg.sd.util.ConnectionInjector;
+import dev.anvilcraft.rg.sd.util.IConnectionInjector;
 import io.netty.channel.embedded.EmbeddedChannel;
 import net.minecraft.network.Connection;
 import net.minecraft.network.PacketListener;
@@ -11,7 +11,7 @@ import org.jetbrains.annotations.NotNull;
 public class FakeClientConnection extends Connection {
     public FakeClientConnection(PacketFlow receiving) {
         super(receiving);
-        ((ConnectionInjector) this).setChannel(new EmbeddedChannel());
+        ((IConnectionInjector) this).setChannel(new EmbeddedChannel());
     }
 
     @Override

@@ -81,6 +81,13 @@ public class SiliconeDollsServerRules {
         categories = SiliconeDolls.MODID,
         validator = RGValidator.BooleanValidator.class
     )
+    public static boolean fakePlayerAutoReplenishmentFromShulkerBox = false;
+
+    @Rule(
+        allowed = {"true", "false"},
+        categories = SiliconeDolls.MODID,
+        validator = RGValidator.BooleanValidator.class
+    )
     public static boolean fakePlayerAutoFish = false;
 
     @Rule(

@@ -5,11 +5,16 @@
   "compatibilityLevel": "JAVA_8",
   "refmap": "silicone_rubber.refmap.json",
   "mixins": [
+    "AbstractContainerMenuAccessor",
+    "ChestMenuMixin",
     "ConnectionMixin",
     "EntityInvoker",
+    "FishingHookMixin",
+    "ItemStackMixin",
     "PlayerAccessor",
     "PlayerListMixin",
     "ServerPlayerMixin",
+    "SlotMixin",
     "combat.PacketDistributorMixin"
   ],
   "client": [

@@ -6,6 +6,16 @@
   "silicone_dolls.commands.tips.not_fake": "玩家 %s 不是假玩家",
   "silicone_dolls.commands.tips.not_found": "未找到玩家",
 
+  "silicone_dolls.button.hotbar": "快捷栏：%s",
+  "silicone_dolls.button.action.stop_all": "停止所有动作",
+  "silicone_dolls.button.action.attack_interval_12": "间隔 12 gt攻击：%s",
+  "silicone_dolls.button.action.attack_continuous": "一直左键： %s",
+  "silicone_dolls.button.action.use_continuous": "一直右键：%s",
+
+  "silicone_dolls.player.ender_chest": "%s的末影箱",
+  "silicone_dolls.player.other_controller": "%s的额外控制面板",
+  "silicone_dolls.player.inventory": "%s的背包",
+
   "silicone_dolls.rolling_gate.rule.command_player": "Player 命令",
   "silicone_dolls.rolling_gate.rule.command_player.desc": "您可以使用 /player 命令召唤假玩家",
 
@@ -32,6 +42,9 @@
 
   "silicone_dolls.rolling_gate.rule.fake_player_auto_replenishment": "假玩家自动补货",
   "silicone_dolls.rolling_gate.rule.fake_player_auto_replenishment.desc": "让假玩家可以自动补货",
+
+  "silicone_dolls.rolling_gate.rule.fake_player_auto_replenishment_from_shulker_box": "假玩家自动从潜影盒补货",
+  "silicone_dolls.rolling_gate.rule.fake_player_auto_replenishment_from_shulker_box.desc": "让假玩家可以自动从潜影盒补货",
 
   "silicone_dolls.rolling_gate.rule.fake_player_auto_fish": "假玩家自动钓鱼",
   "silicone_dolls.rolling_gate.rule.fake_player_auto_fish.desc": "让假玩家自动钓鱼",

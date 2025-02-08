@@ -15,7 +15,7 @@ import dev.anvilcraft.rg.sd.SiliconeDollsServerRules;
 import dev.anvilcraft.rg.sd.entity.FakePlayer;
 import dev.anvilcraft.rg.sd.entity.PlayerActionPack;
 import dev.anvilcraft.rg.sd.init.ModCommands;
-import dev.anvilcraft.rg.sd.util.ServerPlayerInjector;
+import dev.anvilcraft.rg.sd.util.IServerPlayerInjector;
 import net.minecraft.ChatFormatting;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
@@ -286,7 +286,7 @@ public class PlayerCommand {
         }
         FakePlayer player = isFakePlayerValid(context);
         if (player == null) return 0;
-        PlayerActionPack actionPack = ((ServerPlayerInjector) player).getActionPack();
+        PlayerActionPack actionPack = ((IServerPlayerInjector) player).getActionPack();
         if (interval.equals("interval")) {
             int time;
             try {
@@ -307,7 +307,7 @@ public class PlayerCommand {
     public static int sneak(@NotNull CommandContext<CommandSourceStack> context, boolean doSneak) {
         FakePlayer player = isFakePlayerValid(context);
         if (player == null) return 0;
-        PlayerActionPack actionPack = ((ServerPlayerInjector) player).getActionPack();
+        PlayerActionPack actionPack = ((IServerPlayerInjector) player).getActionPack();
         actionPack.setSneaking(doSneak);
         return 1;
     }
@@ -315,7 +315,7 @@ public class PlayerCommand {
     public static int sprint(@NotNull CommandContext<CommandSourceStack> context, boolean doSprint) {
         FakePlayer player = isFakePlayerValid(context);
         if (player == null) return 0;
-        PlayerActionPack actionPack = ((ServerPlayerInjector) player).getActionPack();
+        PlayerActionPack actionPack = ((IServerPlayerInjector) player).getActionPack();
         actionPack.setSprinting(doSprint);
         return 1;
     }
@@ -323,7 +323,7 @@ public class PlayerCommand {
     public static int mount(@NotNull CommandContext<CommandSourceStack> context, boolean doMount) {
         FakePlayer player = isFakePlayerValid(context);
         if (player == null) return 0;
-        PlayerActionPack actionPack = ((ServerPlayerInjector) player).getActionPack();
+        PlayerActionPack actionPack = ((IServerPlayerInjector) player).getActionPack();
         actionPack.mount(doMount);
         return 1;
     }
@@ -340,7 +340,7 @@ public class PlayerCommand {
         }
         FakePlayer player = isFakePlayerValid(context);
         if (player == null) return 0;
-        PlayerActionPack actionPack = ((ServerPlayerInjector) player).getActionPack();
+        PlayerActionPack actionPack = ((IServerPlayerInjector) player).getActionPack();
         actionPack.look(d);
         return 1;
     }
@@ -348,7 +348,7 @@ public class PlayerCommand {
     public static int lookAt(@NotNull CommandContext<CommandSourceStack> context) {
         FakePlayer player = isFakePlayerValid(context);
         if (player == null) return 0;
-        PlayerActionPack actionPack = ((ServerPlayerInjector) player).getActionPack();
+        PlayerActionPack actionPack = ((IServerPlayerInjector) player).getActionPack();
         Vec3 vec3 = ModCommands.getArg(context, "pos", Vec3Argument::getVec3);
         if (vec3 == null) {
             context.getSource().sendFailure(TranslationUtil.trans("silicone_dolls.commands.tips.invalid_position").withStyle(ChatFormatting.RED));
@@ -370,7 +370,7 @@ public class PlayerCommand {
         }
         FakePlayer player = isFakePlayerValid(context);
         if (player == null) return 0;
-        PlayerActionPack actionPack = ((ServerPlayerInjector) player).getActionPack();
+        PlayerActionPack actionPack = ((IServerPlayerInjector) player).getActionPack();
         actionPack.turn(r, 0);
         return 1;
     }
@@ -378,7 +378,7 @@ public class PlayerCommand {
     public static int turn(@NotNull CommandContext<CommandSourceStack> context) {
         FakePlayer player = isFakePlayerValid(context);
         if (player == null) return 0;
-        PlayerActionPack actionPack = ((ServerPlayerInjector) player).getActionPack();
+        PlayerActionPack actionPack = ((IServerPlayerInjector) player).getActionPack();
         float x;
         float y;
         try {
@@ -395,7 +395,7 @@ public class PlayerCommand {
     public static int dropStack(@NotNull CommandContext<CommandSourceStack> context) {
         FakePlayer player = isFakePlayerValid(context);
         if (player == null) return 0;
-        PlayerActionPack actionPack = ((ServerPlayerInjector) player).getActionPack();
+        PlayerActionPack actionPack = ((IServerPlayerInjector) player).getActionPack();
         String s = ModCommands.getArg(context, "all", StringArgumentType::getString);
         if (s == null) {
             actionPack.drop(-1, true);
@@ -411,7 +411,7 @@ public class PlayerCommand {
     public static int move(@NotNull CommandContext<CommandSourceStack> context) {
         FakePlayer player = isFakePlayerValid(context);
         if (player == null) return 0;
-        PlayerActionPack actionPack = ((ServerPlayerInjector) player).getActionPack();
+        PlayerActionPack actionPack = ((IServerPlayerInjector) player).getActionPack();
         String s = ModCommands.getArg(context, "rotation", StringArgumentType::getString);
         switch (s) {
             case "forward" -> {
@@ -440,7 +440,7 @@ public class PlayerCommand {
     public static int stopActions(@NotNull CommandContext<CommandSourceStack> context) {
         FakePlayer player = isFakePlayerValid(context);
         if (player == null) return 0;
-        PlayerActionPack actionPack = ((ServerPlayerInjector) player).getActionPack();
+        PlayerActionPack actionPack = ((IServerPlayerInjector) player).getActionPack();
         actionPack.stopAll();
         return 1;
     }
