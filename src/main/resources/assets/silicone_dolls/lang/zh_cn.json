@@ -11,6 +11,9 @@
   "silicone_dolls.button.action.attack_interval_12": "间隔 12 gt攻击：%s",
   "silicone_dolls.button.action.attack_continuous": "一直左键： %s",
   "silicone_dolls.button.action.use_continuous": "一直右键：%s",
+  "silicone_dolls.button.action.sneak": "潜行: %s",
+  "silicone_dolls.button.action.jump_continuous": "连续跳跃: %s",
+  "silicone_dolls.button.action.quit": "退出游戏",
 
   "silicone_dolls.player.ender_chest": "%s的末影箱",
   "silicone_dolls.player.other_controller": "%s的额外控制面板",

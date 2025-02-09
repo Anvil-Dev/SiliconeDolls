@@ -11,6 +11,9 @@
   "silicone_dolls.button.action.attack_interval_12": "Attack every 12 gt: %s",
   "silicone_dolls.button.action.attack_continuous": "Attack continuous: %s",
   "silicone_dolls.button.action.use_continuous": "Use continuous: %s",
+  "silicone_dolls.button.action.sneak": "Sneak: %s",
+  "silicone_dolls.button.action.jump_continuous": "Jump continuous: %s",
+  "silicone_dolls.button.action.quit": "Quit",
 
   "silicone_dolls.player.ender_chest": "%s's Ender Chest",
   "silicone_dolls.player.other_controller": "%s's Other Controller",

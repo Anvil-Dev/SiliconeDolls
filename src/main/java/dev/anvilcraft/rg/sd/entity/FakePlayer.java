@@ -63,18 +63,6 @@ public class FakePlayer extends ServerPlayer {
         @NotNull GameType gamemode,
         @NotNull Consumer<FakePlayer> callback
     ) {
-        if (
-            !SiliconeDollsServerRules.fakePlayerNamePrefix.equals("#none") &&
-                !username.toLowerCase().startsWith(SiliconeDollsServerRules.fakePlayerNamePrefix.toLowerCase())
-        ) {
-            username = SiliconeDollsServerRules.fakePlayerNamePrefix + username;
-        }
-        if (
-            !SiliconeDollsServerRules.fakePlayerNameSuffix.equals("#none") &&
-                !username.toLowerCase().endsWith(SiliconeDollsServerRules.fakePlayerNameSuffix.toLowerCase())
-        ) {
-            username = username + SiliconeDollsServerRules.fakePlayerNameSuffix;
-        }
         GameProfileCache.setUsesAuthentication(false);
         GameProfile gameprofile;
         try {

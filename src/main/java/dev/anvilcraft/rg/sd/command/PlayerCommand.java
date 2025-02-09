@@ -216,6 +216,18 @@ public class PlayerCommand {
             source.sendFailure(TranslationUtil.trans("silicone_dolls.commands.tips.invalid_name").withStyle(ChatFormatting.RED));
             return 0;
         }
+        if (
+            !SiliconeDollsServerRules.fakePlayerNamePrefix.equals("#none") &&
+                !name.toLowerCase().startsWith(SiliconeDollsServerRules.fakePlayerNamePrefix.toLowerCase())
+        ) {
+            name = SiliconeDollsServerRules.fakePlayerNamePrefix + name;
+        }
+        if (
+            !SiliconeDollsServerRules.fakePlayerNameSuffix.equals("#none") &&
+                !name.toLowerCase().endsWith(SiliconeDollsServerRules.fakePlayerNameSuffix.toLowerCase())
+        ) {
+            name = name + SiliconeDollsServerRules.fakePlayerNameSuffix;
+        }
         PlayerList playerList = source.getServer().getPlayerList();
         ServerPlayer playerByName = playerList.getPlayerByName(name);
         if (playerByName != null) {
