@@ -73,7 +73,7 @@ jobs:
         uses: Anvil-Dev/dedicated-server-launch-test@1.21.1-neoforge
         with:
           mod: build/libs/${{ steps.properties.outputs.mod_name }}-neoforge-1.21.1-${{ steps.version.outputs.version }}.jar
-          extra-mods: patchouli:1.21-87-neoforge cloth-config:15.0.140+neoforge
+          extra-mods: rolling-gate:${{ steps.properties.outputs.rolling_gate_version }}
 
       - name: publish neoforge mc mod
         uses: Kir-Antipov/mc-publish@v3.3

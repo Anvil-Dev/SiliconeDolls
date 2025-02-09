@@ -65,4 +65,4 @@ jobs:
         uses: Anvil-Dev/dedicated-server-launch-test@1.21.1-neoforge
         with:
           mod: build/libs/${{ steps.properties.outputs.mod_name }}-neoforge-1.21.1-${{ steps.version.outputs.version }}.jar
-          extra-mods: rolling-gate:1.0.0+build.30
+          extra-mods: rolling-gate:${{ steps.properties.outputs.rolling_gate_version }}
