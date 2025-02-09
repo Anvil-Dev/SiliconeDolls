@@ -170,6 +170,10 @@ public class PlayerCommand {
                         )
                         .then(
                             Commands.literal("hotbar")
+                                .then(
+                                    Commands.argument("slot", IntegerArgumentType.integer(1, 9))
+                                        .executes(PlayerCommand::hotbar)
+                                )
                         )
                         .then(
                             Commands.literal("shadow")
@@ -447,6 +451,25 @@ public class PlayerCommand {
                 return 0;
             }
         }
+    }
+
+    public static int hotbar(@NotNull CommandContext<CommandSourceStack> context){
+        FakePlayer player = isFakePlayerValid(context);
+        if (player == null) return 0;
+        PlayerActionPack actionPack = ((IServerPlayerInjector) player).getActionPack();
+        int slot;
+        try {
+            slot = IntegerArgumentType.getInteger(context, "slot");
+        } catch (IllegalArgumentException ignored) {
+            context.getSource().sendFailure(TranslationUtil.trans("silicone_dolls.commands.tips.invalid_slot").withStyle(ChatFormatting.RED));
+            return 0;
+        }
+        if (slot < 0 || slot > 8) {
+            context.getSource().sendFailure(TranslationUtil.trans("silicone_dolls.commands.tips.invalid_slot").withStyle(ChatFormatting.RED));
+            return 0;
+        }
+        actionPack.setSlot(slot);
+        return 1;
     }
 
     public static int stopActions(@NotNull CommandContext<CommandSourceStack> context) {
