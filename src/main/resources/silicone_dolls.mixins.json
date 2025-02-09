@@ -13,6 +13,7 @@
     "ItemStackMixin",
     "PlayerAccessor",
     "PlayerListMixin",
+    "combat.ServerCommonPacketListenerImplMixin",
     "ServerPlayerMixin",
     "SlotMixin",
     "combat.PacketDistributorMixin"

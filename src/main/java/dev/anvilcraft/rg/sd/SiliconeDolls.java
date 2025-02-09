@@ -187,7 +187,7 @@ public class SiliconeDolls implements RGAdditional {
     public void onServerLoadedWorlds(@NotNull ServerLoadedLevelEvent event) {
         MinecraftServer server = event.getServer();
         if (SiliconeDollsServerRules.fakePlayerResident) {
-            File file = server.getWorldPath(LevelResource.ROOT).resolve("fake_player.gca.json").toFile();
+            File file = server.getWorldPath(LevelResource.ROOT).resolve("fake_player.rg.json").toFile();
             if (!file.isFile()) {
                 return;
             }

@@ -12,10 +12,12 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.function.BiConsumer;
 
 public class FakePlayerInventoryContainer extends FakePlayerContainer {
     public final NonNullList<ItemStack> items;
@@ -24,6 +26,7 @@ public class FakePlayerInventoryContainer extends FakePlayerContainer {
     private final NonNullList<ItemStack> buttons = NonNullList.withSize(13, ItemStack.EMPTY);
     private final List<NonNullList<ItemStack>> compartments;
     private final PlayerActionPack ap;
+    private final RadioList hotbar;
 
     public FakePlayerInventoryContainer(Player player) {
         super(player);
@@ -32,8 +35,8 @@ public class FakePlayerInventoryContainer extends FakePlayerContainer {
         this.offhand = this.player.getInventory().offhand;
         this.ap = ((IServerPlayerInjector) this.player).getActionPack();
         this.compartments = ImmutableList.of(this.items, this.armor, this.offhand, this.buttons);
+        this.hotbar = FakePlayerInventoryContainer.createHotbarButton(this::addButton, this.ap);
         this.createButton();
-        this.ap.setSlot(1);
     }
 
     @Override
@@ -86,7 +89,7 @@ public class FakePlayerInventoryContainer extends FakePlayerContainer {
         }
     }
 
-    private void createButton() {
+    private static @NotNull RadioList createHotbarButton(BiConsumer<Integer, Button> adder, PlayerActionPack ap) {
         List<Button> hotBarList = new ArrayList<>();
         for (int i = 0; i < 9; i++) {
             Component hotBarComponent = TranslationUtil.trans("silicone_dolls.button.hotbar", i + 1).withStyle(
@@ -99,11 +102,13 @@ public class FakePlayerInventoryContainer extends FakePlayerContainer {
             );
             int finalI = i + 1;
             button.addTurnOnFunction(() -> ap.setSlot(finalI));
-            this.addButton(i + 9, button);
+            adder.accept(i + 9, button);
             hotBarList.add(button);
         }
-        this.addButtonList(new RadioList(hotBarList, true));
+        return new RadioList(hotBarList, true);
+    }
 
+    private void createButton() {
         Button stopAll = new AutoResetButton("silicone_dolls.button.action.stop_all");
         Button attackInterval14 = new Button(false, "silicone_dolls.button.action.attack_interval_12");
         Button attackContinuous = new Button(false, "silicone_dolls.button.action.attack_continuous");
@@ -135,5 +140,18 @@ public class FakePlayerInventoryContainer extends FakePlayerContainer {
         this.addButton(5, attackInterval14);
         this.addButton(6, attackContinuous);
         this.addButton(8, useContinuous);
+    }
+
+    @Override
+    public void startOpen(@NotNull Player player) {
+        super.startOpen(player);
+        List<Button> buttonList = this.hotbar.getButtons();
+        for (int i = 0; i < buttonList.size(); i++) {
+            if (i == this.player.getInventory().selected) {
+                buttonList.get(i).turnOnWithoutFunction();
+            } else {
+                buttonList.get(i).turnOffWithoutFunction();
+            }
+        }
     }
 }
