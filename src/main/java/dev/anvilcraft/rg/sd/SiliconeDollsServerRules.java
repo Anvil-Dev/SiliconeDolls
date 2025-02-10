@@ -41,7 +41,7 @@ public class SiliconeDollsServerRules {
     )
     public static boolean openFakePlayerInventory = false;
 
-    static class OpenFakePlayerEnderChestValidator extends RGValidator.StringInSetValidator {
+    public static class OpenFakePlayerEnderChestValidator extends RGValidator.StringInSetValidator {
         @Override
         public Set<String> getSet() {
             return Set.of("true", "false", "ender_chest");
