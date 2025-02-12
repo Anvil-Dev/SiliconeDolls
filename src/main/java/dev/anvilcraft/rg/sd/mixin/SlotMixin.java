@@ -12,7 +12,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(Slot.class)
-public class SlotMixin implements SlotIcon {
+abstract class SlotMixin implements SlotIcon {
     @Unique
     private Pair<ResourceLocation, ResourceLocation> siliconeDolls$pair;
 

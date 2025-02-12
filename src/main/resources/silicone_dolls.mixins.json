@@ -13,10 +13,10 @@
     "ItemStackMixin",
     "PlayerAccessor",
     "PlayerListMixin",
-    "combat.ServerCommonPacketListenerImplMixin",
+    "ServerConfigurationPacketListenerImplMixin",
     "ServerPlayerMixin",
     "SlotMixin",
-    "combat.PacketDistributorMixin"
+    "combat.ServerCommonPacketListenerImplMixin"
   ],
   "client": [
   ],

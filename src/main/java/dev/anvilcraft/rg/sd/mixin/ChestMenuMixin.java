@@ -18,7 +18,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(ChestMenu.class)
-public class ChestMenuMixin implements ClientMenuTick {
+abstract class ChestMenuMixin implements ClientMenuTick {
     @Inject(method = "quickMoveStack", at = @At("HEAD"), cancellable = true)
     private void quickMove(Player player, int i, CallbackInfoReturnable<ItemStack> cir) {
         if (this.siliconeDolls$isFakePlayerMenu()) {

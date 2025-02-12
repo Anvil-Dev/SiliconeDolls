@@ -85,6 +85,7 @@ jobs:
           version-type: "alpha"
           java: 21
           fail-mode: skip
+          changelog: ${{ github.event.head_commit.message }}
           dependencies: |
             rolling_gate@${{ steps.properties.outputs.rolling_gate_version }}(required){modrinth:HXsmHiKu}{curseforge:1194894}
 
