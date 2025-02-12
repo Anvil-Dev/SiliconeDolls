@@ -585,7 +585,7 @@ public class PlayerActionPack {
         }
 
         public static @NotNull Action interval(int interval) {
-            return new Action(-1, interval, 0, true);
+            return new Action(-1, interval, 0, false);
         }
 
         Boolean tick(PlayerActionPack actionPack, ActionType type) {

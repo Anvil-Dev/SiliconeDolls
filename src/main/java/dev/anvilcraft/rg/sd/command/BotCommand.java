@@ -8,8 +8,7 @@ import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
-import com.mojang.brigadier.suggestion.Suggestions;
-import com.mojang.brigadier.suggestion.SuggestionsBuilder;
+import com.mojang.brigadier.suggestion.SuggestionProvider;
 import dev.anvilcraft.rg.api.RGValidator;
 import dev.anvilcraft.rg.sd.SiliconeDolls;
 import dev.anvilcraft.rg.sd.SiliconeDollsServerRules;
@@ -24,7 +23,6 @@ import dev.anvilcraft.rg.tools.FilesUtil;
 import net.minecraft.ChatFormatting;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
-import net.minecraft.commands.SharedSuggestionProvider;
 import net.minecraft.commands.arguments.EntityArgument;
 import net.minecraft.core.UUIDUtil;
 import net.minecraft.network.chat.ClickEvent;
@@ -53,7 +51,6 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
 @SuppressWarnings({"SameParameterValue", "unused"})
@@ -88,7 +85,7 @@ public class BotCommand {
                     Commands.literal("load")
                         .then(
                             Commands.argument("player", StringArgumentType.string())
-                                .suggests(BotCommand::suggestPlayer)
+                                .suggests(BotCommand.suggestBot())
                                 .executes(BotCommand::load)
                         )
                 )
@@ -96,6 +93,7 @@ public class BotCommand {
                     Commands.literal("remove")
                         .then(
                             Commands.argument("player", StringArgumentType.string())
+                                .suggests(BotCommand.suggestBot())
                                 .executes(BotCommand::remove)
                         )
                 )
@@ -121,6 +119,7 @@ public class BotCommand {
                             Commands.literal("remove")
                                 .then(
                                     Commands.argument("name", StringArgumentType.greedyString())
+                                        .suggests(BotCommand.suggestBotGroup())
                                         .executes(BotCommand::groupRemove)
                                 )
                         )
@@ -128,8 +127,10 @@ public class BotCommand {
                             Commands.literal("add")
                                 .then(
                                     Commands.argument("bot", StringArgumentType.string())
+                                        .suggests(BotCommand.suggestBot())
                                         .then(
                                             Commands.argument("group", StringArgumentType.greedyString())
+                                                .suggests(BotCommand.suggestBotGroup())
                                                 .executes(BotCommand::groupAddBot)
                                         )
                                 )
@@ -138,8 +139,10 @@ public class BotCommand {
                             Commands.literal("remove")
                                 .then(
                                     Commands.argument("bot", StringArgumentType.string())
+                                        .suggests(BotCommand.suggestBot())
                                         .then(
                                             Commands.argument("group", StringArgumentType.greedyString())
+                                                .suggests(BotCommand.suggestBotGroup())
                                                 .executes(BotCommand::groupRemoveBot)
                                         )
                                 )
@@ -148,6 +151,7 @@ public class BotCommand {
                             Commands.literal("load")
                                 .then(
                                     Commands.argument("group", StringArgumentType.greedyString())
+                                        .suggests(BotCommand.suggestBotGroup())
                                         .executes(BotCommand::groupLoadBot)
                                 )
                         )
@@ -155,6 +159,7 @@ public class BotCommand {
                             Commands.literal("unload")
                                 .then(
                                     Commands.argument("group", StringArgumentType.greedyString())
+                                        .suggests(BotCommand.suggestBotGroup())
                                         .executes(BotCommand::groupUnloadBot)
                                 )
                         )
@@ -162,6 +167,7 @@ public class BotCommand {
                             Commands.literal("info")
                                 .then(
                                     Commands.argument("group", StringArgumentType.greedyString())
+                                        .suggests(BotCommand.suggestBotGroup())
                                         .executes(BotCommand::groupInfo)
                                 )
                         )
@@ -258,8 +264,12 @@ public class BotCommand {
         );
     }
 
-    private static @NotNull CompletableFuture<Suggestions> suggestPlayer(final CommandContext<CommandSourceStack> context, final SuggestionsBuilder builder) {
-        return SharedSuggestionProvider.suggest(BOT_INFO.map.keySet(), builder);
+    private static @NotNull SuggestionProvider<CommandSourceStack> suggestBot() {
+        return ModCommands.suggest(BOT_INFO.map.keySet());
+    }
+
+    private static @NotNull SuggestionProvider<CommandSourceStack> suggestBotGroup() {
+        return ModCommands.suggest(BOT_GROUP_INFO.map.keySet());
     }
 
     private static boolean load(String name, Consumer<Component> failure) {

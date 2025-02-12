@@ -110,26 +110,26 @@ public class FakePlayerInventoryContainer extends FakePlayerContainer {
 
     private void createButton() {
         Button stopAll = new AutoResetButton("silicone_dolls.button.action.stop_all");
-        Button attackInterval14 = new Button(false, "silicone_dolls.button.action.attack_interval_12");
+        Button attackInterval12 = new Button(false, "silicone_dolls.button.action.attack_interval_12");
         Button attackContinuous = new Button(false, "silicone_dolls.button.action.attack_continuous");
         Button useContinuous = new Button(false, "silicone_dolls.button.action.use_continuous");
 
         stopAll.addTurnOnFunction(() -> {
-            attackInterval14.turnOffWithoutFunction();
+            attackInterval12.turnOffWithoutFunction();
             attackContinuous.turnOffWithoutFunction();
             useContinuous.turnOffWithoutFunction();
             ap.stopAll();
         });
 
-        attackInterval14.addTurnOnFunction(() -> {
+        attackInterval12.addTurnOnFunction(() -> {
             ap.start(PlayerActionPack.ActionType.ATTACK, PlayerActionPack.Action.interval(12));
             attackContinuous.turnOffWithoutFunction();
         });
-        attackInterval14.addTurnOffFunction(() -> ap.start(PlayerActionPack.ActionType.ATTACK, PlayerActionPack.Action.once()));
+        attackInterval12.addTurnOffFunction(() -> ap.start(PlayerActionPack.ActionType.ATTACK, PlayerActionPack.Action.once()));
 
         attackContinuous.addTurnOnFunction(() -> {
             ap.start(PlayerActionPack.ActionType.ATTACK, PlayerActionPack.Action.continuous());
-            attackInterval14.turnOffWithoutFunction();
+            attackInterval12.turnOffWithoutFunction();
         });
         attackContinuous.addTurnOffFunction(() -> ap.start(PlayerActionPack.ActionType.ATTACK, PlayerActionPack.Action.once()));
 
@@ -137,7 +137,7 @@ public class FakePlayerInventoryContainer extends FakePlayerContainer {
         useContinuous.addTurnOffFunction(() -> ap.start(PlayerActionPack.ActionType.USE, PlayerActionPack.Action.once()));
 
         this.addButton(0, stopAll);
-        this.addButton(5, attackInterval14);
+        this.addButton(5, attackInterval12);
         this.addButton(6, attackContinuous);
         this.addButton(8, useContinuous);
     }

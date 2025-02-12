@@ -188,7 +188,7 @@ public class PlayerCommand {
         );
     }
 
-    private static @NotNull SuggestionProvider<CommandSourceStack> suggestPlayer() {
+    public static @NotNull SuggestionProvider<CommandSourceStack> suggestPlayer() {
         return (context, builder) -> {
             List<String> players = new ArrayList<>(context.getSource().getOnlinePlayerNames());
             players.add("Alex");
