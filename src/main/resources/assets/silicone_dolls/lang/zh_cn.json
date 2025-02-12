@@ -2,6 +2,12 @@
   "rolling_gate.category.silicone_dolls": "硅胶玩偶",
 
   "silicone_dolls.commands.tips.invalid_name": "无效的玩家名称",
+  "silicone_dolls.commands.tips.invalid_rotation": "无效的旋转",
+  "silicone_dolls.commands.tips.invalid_slot": "无效的插槽",
+  "silicone_dolls.commands.tips.invalid_command": "无效的命令",
+  "silicone_dolls.commands.tips.invalid_position": "无效位置",
+  "silicone_dolls.commands.tips.invalid_direction": "方向无效",
+  "silicone_dolls.commands.tips.invalid_interval": "无效的间隔",
   "silicone_dolls.commands.tips.logged": "玩家 %s 已登录",
   "silicone_dolls.commands.tips.not_fake": "玩家 %s 不是假玩家",
   "silicone_dolls.commands.tips.not_found": "未找到玩家",

@@ -422,7 +422,7 @@ public class BotCommand {
         for (int i = (page - 1) * pageSize; i < size && i < page * pageSize; i++) {
             context.getSource().sendSystemMessage(botToComponent(botInfos.get(i)));
         }
-        listComponent(context, page, maxPage, "/botGroup show");
+        listComponent(context, page, maxPage, "/bot group show");
         return 1;
     }
 
@@ -579,7 +579,7 @@ public class BotCommand {
         for (int i = (page - 1) * pageSize; i < size && i < page * pageSize; i++) {
             context.getSource().sendSystemMessage(botGroupToComponent(botGroupInfos[i]));
         }
-        listComponent(context, page, maxPage, "/botGroup list");
+        listComponent(context, page, maxPage, "/bot group list");
         return 1;
     }
 
@@ -593,25 +593,25 @@ public class BotCommand {
             Style.EMPTY
                 .applyFormat(ChatFormatting.GREEN)
                 .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Component.literal("Load Group")))
-                .withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/botGroup load %s".formatted(botGroupInfo.name)))
+                .withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/bot group load %s".formatted(botGroupInfo.name)))
         );
         MutableComponent remove = Component.literal("[↓]").withStyle(
             Style.EMPTY
                 .applyFormat(ChatFormatting.RED)
                 .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Component.literal("Unload Group")))
-                .withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/botGroup unload %s".formatted(botGroupInfo.name)))
+                .withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/bot group unload %s".formatted(botGroupInfo.name)))
         );
         MutableComponent info = Component.literal("[i]").withStyle(
             Style.EMPTY
                 .applyFormat(ChatFormatting.RED)
                 .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Component.literal("Group Info")))
-                .withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/botGroup info %s".formatted(botGroupInfo.name)))
+                .withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/bot group info %s".formatted(botGroupInfo.name)))
         );
         MutableComponent delete = Component.literal("[\uD83D\uDDD1]").withStyle(
             Style.EMPTY
                 .applyFormat(ChatFormatting.RED)
                 .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Component.literal("Remove Bot Group")))
-                .withClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, "/botGroup remove %s".formatted(botGroupInfo.name)))
+                .withClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, "/bot group remove %s".formatted(botGroupInfo.name)))
         );
         MutableComponent component = Component.literal("▶ ").append(name);
         component.append(" ").append(load);

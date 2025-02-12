@@ -509,7 +509,7 @@ public class PlayerCommand {
         ServerPlayer player = isThereFakePlayer(context);
         if (player == null) return null;
         if (player instanceof FakePlayer fakePlayer) return fakePlayer;
-        context.getSource().sendFailure(TranslationUtil.trans("silicone_dolls.commands.tips.not_silicone_dolls", player.getName().getString()).withStyle(ChatFormatting.RED));
+        context.getSource().sendFailure(TranslationUtil.trans("silicone_dolls.commands.tips.not_fake", player.getName().getString()).withStyle(ChatFormatting.RED));
         return null;
     }
 

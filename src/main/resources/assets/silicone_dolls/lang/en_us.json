@@ -2,6 +2,12 @@
   "rolling_gate.category.silicone_dolls": "SILICONE DOLLS",
 
   "silicone_dolls.commands.tips.invalid_name": "Invalid player name",
+  "silicone_dolls.commands.tips.invalid_rotation": "Invalid rotation",
+  "silicone_dolls.commands.tips.invalid_slot": "Invalid slot",
+  "silicone_dolls.commands.tips.invalid_command": "Invalid command",
+  "silicone_dolls.commands.tips.invalid_position": "Invalid position",
+  "silicone_dolls.commands.tips.invalid_direction": "Invalid direction",
+  "silicone_dolls.commands.tips.invalid_interval": "Invalid interval",
   "silicone_dolls.commands.tips.logged": "Player %s is already logged in",
   "silicone_dolls.commands.tips.not_fake": "Player %s is not a Fake Player",
   "silicone_dolls.commands.tips.not_found": "Player not found",
