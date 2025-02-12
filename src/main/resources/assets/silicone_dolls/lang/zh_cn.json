@@ -5,6 +5,7 @@
   "silicone_dolls.commands.tips.logged": "玩家 %s 已登录",
   "silicone_dolls.commands.tips.not_fake": "玩家 %s 不是假玩家",
   "silicone_dolls.commands.tips.not_found": "未找到玩家",
+  "silicone_dolls.commands.tips.no_permission": "你没有此命令的权限",
 
   "silicone_dolls.button.hotbar": "快捷栏：%s",
   "silicone_dolls.button.action.stop_all": "停止所有动作",

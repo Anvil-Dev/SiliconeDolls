@@ -5,6 +5,7 @@
   "silicone_dolls.commands.tips.logged": "Player %s is already logged in",
   "silicone_dolls.commands.tips.not_fake": "Player %s is not a Fake Player",
   "silicone_dolls.commands.tips.not_found": "Player not found",
+  "silicone_dolls.commands.tips.no_permission": "You do not have permission for this command",
 
   "silicone_dolls.button.hotbar": "Hotbar: %s",
   "silicone_dolls.button.action.stop_all": "Stop all action",

@@ -30,6 +30,7 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.players.PlayerList;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.phys.Vec2;
 import net.minecraft.world.phys.Vec3;
@@ -280,6 +281,15 @@ public class PlayerCommand {
     public static int shadowPlayer(@NotNull CommandContext<CommandSourceStack> context) {
         ServerPlayer player = isThereFakePlayer(context);
         if (player == null) return 0;
+        if (player instanceof FakePlayer) return 0;
+        CommandSourceStack source = context.getSource();
+        boolean isOp = source.hasPermission(Commands.LEVEL_GAMEMASTERS);
+        Entity entity = source.getEntity();
+        boolean isSelf = entity == player;
+        if (!isOp && !isSelf) {
+            source.sendFailure(TranslationUtil.trans("silicone_dolls.commands.tips.no_permission").withStyle(ChatFormatting.RED));
+            return 0;
+        }
         FakePlayer.createShadow(player);
         return 1;
     }
@@ -453,7 +463,7 @@ public class PlayerCommand {
         }
     }
 
-    public static int hotbar(@NotNull CommandContext<CommandSourceStack> context){
+    public static int hotbar(@NotNull CommandContext<CommandSourceStack> context) {
         FakePlayer player = isFakePlayerValid(context);
         if (player == null) return 0;
         PlayerActionPack actionPack = ((IServerPlayerInjector) player).getActionPack();
