@@ -233,6 +233,10 @@ public class PlayerCommand {
         ) {
             name = name + SiliconeDollsServerRules.fakePlayerNameSuffix;
         }
+        if (name.length() > 16) {
+            source.sendFailure(TranslationUtil.trans("silicone_dolls.commands.tips.name_too_long", name).withStyle(ChatFormatting.RED));
+            return 0;
+        }
         PlayerList playerList = source.getServer().getPlayerList();
         ServerPlayer playerByName = playerList.getPlayerByName(name);
         if (playerByName != null) {

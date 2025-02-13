@@ -11,6 +11,7 @@
   "silicone_dolls.commands.tips.logged": "玩家 %s 已登录",
   "silicone_dolls.commands.tips.not_fake": "玩家 %s 不是假玩家",
   "silicone_dolls.commands.tips.not_found": "未找到玩家",
+  "silicone_dolls.commands.tips.name_too_long": "玩家名称 %s 太长",
   "silicone_dolls.commands.tips.no_permission": "你没有此命令的权限",
 
   "silicone_dolls.button.hotbar": "快捷栏：%s",
@@ -66,5 +67,8 @@
   "silicone_dolls.rolling_gate.rule.fake_player_name_prefix.desc": "假玩家名称前缀",
 
   "silicone_dolls.rolling_gate.rule.fake_player_name_suffix": "假玩家名称后缀",
-  "silicone_dolls.rolling_gate.rule.fake_player_name_suffix.desc": "假玩家名称后缀"
+  "silicone_dolls.rolling_gate.rule.fake_player_name_suffix.desc": "假玩家名称后缀",
+
+  "silicone_dolls.rolling_gate.rule.fake_player_spawn_no_knockback": "假玩家生成无击退",
+  "silicone_dolls.rolling_gate.rule.fake_player_spawn_no_knockback.desc": "假玩家生成时不会保留上一次的击退、着火时间，摔落距离"
 }

@@ -110,4 +110,11 @@ public class SiliconeDollsServerRules {
         validator = RGValidator.StringValidator.class
     )
     public static String fakePlayerNameSuffix = "#none";
+
+    @Rule(
+        allowed = {"true", "false"},
+        categories = SiliconeDolls.MODID,
+        validator = RGValidator.BooleanValidator.class
+    )
+    public static boolean fakePlayerSpawnNoKnockback = false;
 }

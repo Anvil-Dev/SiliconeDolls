@@ -11,6 +11,7 @@
   "silicone_dolls.commands.tips.logged": "Player %s is already logged in",
   "silicone_dolls.commands.tips.not_fake": "Player %s is not a Fake Player",
   "silicone_dolls.commands.tips.not_found": "Player not found",
+  "silicone_dolls.commands.tips.name_too_long": "Player name %s is too long",
   "silicone_dolls.commands.tips.no_permission": "You do not have permission for this command",
 
   "silicone_dolls.button.hotbar": "Hotbar: %s",
@@ -66,5 +67,8 @@
   "silicone_dolls.rolling_gate.rule.fake_player_name_prefix.desc": "Fake player name prefix",
 
   "silicone_dolls.rolling_gate.rule.fake_player_name_suffix": "Fake Player Name Suffix",
-  "silicone_dolls.rolling_gate.rule.fake_player_name_suffix.desc": "Fake player name suffix"
+  "silicone_dolls.rolling_gate.rule.fake_player_name_suffix.desc": "Fake player name suffix",
+
+  "silicone_dolls.rolling_gate.rule.fake_player_spawn_no_knockback": "Fake Player Spawn No Knockback",
+  "silicone_dolls.rolling_gate.rule.fake_player_spawn_no_knockback.desc": "Remove the knockback, burning time and falling distance when fake players respawning"
 }

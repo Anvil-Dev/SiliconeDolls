@@ -30,6 +30,7 @@ import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.storage.LevelResource;
+import net.minecraft.world.phys.Vec3;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.ModContainer;
@@ -150,6 +151,14 @@ public class SiliconeDolls implements RGAdditional {
     @SubscribeEvent
     public void onPlayerLoggedIn(PlayerEvent.@NotNull PlayerLoggedInEvent event) {
         Player player = event.getEntity();
+        if (SiliconeDollsServerRules.fakePlayerSpawnNoKnockback && player instanceof FakePlayer) {
+            // 清除速度
+            player.setDeltaMovement(Vec3.ZERO);
+            // 清除着火时间
+            player.setRemainingFireTicks(0);
+            // 清除摔落高度
+            player.fallDistance = 0;
+        }
         SiliconeDolls.FAKE_PLAYER_INVENTORY_CONTAINER_MAP.put(player, Map.entry(
             new FakePlayerInventoryContainer(player), new FakePlayerEnderChestContainer(player)
         ));
