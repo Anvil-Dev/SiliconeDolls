@@ -552,6 +552,7 @@ public class PlayerActionPack {
 
         public static @Nullable ActionType fromString(@NotNull String name) {
             try {
+                if (name.equals("drop")) return ActionType.DROP_ITEM;
                 return ActionType.valueOf(name.toUpperCase());
             } catch (IllegalArgumentException e) {
                 return null;

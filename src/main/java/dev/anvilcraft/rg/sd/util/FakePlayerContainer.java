@@ -87,7 +87,7 @@ public abstract class FakePlayerContainer extends CustomChestMenu {
         return this.player.isAlive() && player.distanceToSqr(this.player) <= 64.0;
     }
 
-    public static InteractionResult openInventory(@NotNull Player player, FakePlayer fakePlayer) {
+    public static InteractionResult openInventory(@NotNull Player player, Player fakePlayer) {
         SimpleMenuProvider provider;
         if (player.isShiftKeyDown()) {
             // 打开末影箱

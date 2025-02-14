@@ -283,7 +283,7 @@ public class PlayerCommand {
     }
 
     public static int shadowPlayer(@NotNull CommandContext<CommandSourceStack> context) {
-        ServerPlayer player = isThereFakePlayer(context);
+        ServerPlayer player = getPlayer(context);
         if (player == null) return 0;
         if (player instanceof FakePlayer) return 0;
         CommandSourceStack source = context.getSource();
@@ -299,7 +299,7 @@ public class PlayerCommand {
     }
 
     public static int kill(@NotNull CommandContext<CommandSourceStack> context) {
-        FakePlayer player = isFakePlayerValid(context);
+        FakePlayer player = getFakePlayer(context);
         if (player == null) return 0;
         player.kill();
         return 1;
@@ -314,7 +314,7 @@ public class PlayerCommand {
             context.getSource().sendFailure(TranslationUtil.trans("silicone_dolls.commands.tips.invalid_command").withStyle(ChatFormatting.RED));
             return 0;
         }
-        FakePlayer player = isFakePlayerValid(context);
+        ServerPlayer player = getPlayerByPermission(context);
         if (player == null) return 0;
         PlayerActionPack actionPack = ((IServerPlayerInjector) player).getActionPack();
         if (interval.equals("interval")) {
@@ -335,7 +335,7 @@ public class PlayerCommand {
     }
 
     public static int sneak(@NotNull CommandContext<CommandSourceStack> context, boolean doSneak) {
-        FakePlayer player = isFakePlayerValid(context);
+        ServerPlayer player = getPlayerByPermission(context);
         if (player == null) return 0;
         PlayerActionPack actionPack = ((IServerPlayerInjector) player).getActionPack();
         actionPack.setSneaking(doSneak);
@@ -343,7 +343,7 @@ public class PlayerCommand {
     }
 
     public static int sprint(@NotNull CommandContext<CommandSourceStack> context, boolean doSprint) {
-        FakePlayer player = isFakePlayerValid(context);
+        ServerPlayer player = getPlayerByPermission(context);
         if (player == null) return 0;
         PlayerActionPack actionPack = ((IServerPlayerInjector) player).getActionPack();
         actionPack.setSprinting(doSprint);
@@ -351,7 +351,7 @@ public class PlayerCommand {
     }
 
     public static int mount(@NotNull CommandContext<CommandSourceStack> context, boolean doMount) {
-        FakePlayer player = isFakePlayerValid(context);
+        ServerPlayer player = getPlayerByPermission(context);
         if (player == null) return 0;
         PlayerActionPack actionPack = ((IServerPlayerInjector) player).getActionPack();
         actionPack.mount(doMount);
@@ -368,7 +368,7 @@ public class PlayerCommand {
             context.getSource().sendFailure(TranslationUtil.trans("silicone_dolls.commands.tips.invalid_direction").withStyle(ChatFormatting.RED));
             return 0;
         }
-        FakePlayer player = isFakePlayerValid(context);
+        ServerPlayer player = getPlayerByPermission(context);
         if (player == null) return 0;
         PlayerActionPack actionPack = ((IServerPlayerInjector) player).getActionPack();
         actionPack.look(d);
@@ -376,7 +376,7 @@ public class PlayerCommand {
     }
 
     public static int lookAt(@NotNull CommandContext<CommandSourceStack> context) {
-        FakePlayer player = isFakePlayerValid(context);
+        ServerPlayer player = getPlayerByPermission(context);
         if (player == null) return 0;
         PlayerActionPack actionPack = ((IServerPlayerInjector) player).getActionPack();
         Vec3 vec3 = ModCommands.getArg(context, "pos", Vec3Argument::getVec3);
@@ -398,7 +398,7 @@ public class PlayerCommand {
             context.getSource().sendFailure(TranslationUtil.trans("silicone_dolls.commands.tips.invalid_rotation").withStyle(ChatFormatting.RED));
             return 0;
         }
-        FakePlayer player = isFakePlayerValid(context);
+        ServerPlayer player = getPlayerByPermission(context);
         if (player == null) return 0;
         PlayerActionPack actionPack = ((IServerPlayerInjector) player).getActionPack();
         actionPack.turn(r, 0);
@@ -406,7 +406,7 @@ public class PlayerCommand {
     }
 
     public static int turn(@NotNull CommandContext<CommandSourceStack> context) {
-        FakePlayer player = isFakePlayerValid(context);
+        ServerPlayer player = getPlayerByPermission(context);
         if (player == null) return 0;
         PlayerActionPack actionPack = ((IServerPlayerInjector) player).getActionPack();
         float x;
@@ -423,7 +423,7 @@ public class PlayerCommand {
     }
 
     public static int dropStack(@NotNull CommandContext<CommandSourceStack> context) {
-        FakePlayer player = isFakePlayerValid(context);
+        ServerPlayer player = getPlayerByPermission(context);
         if (player == null) return 0;
         PlayerActionPack actionPack = ((IServerPlayerInjector) player).getActionPack();
         String s = ModCommands.getArg(context, "all", StringArgumentType::getString);
@@ -439,7 +439,7 @@ public class PlayerCommand {
     }
 
     public static int move(@NotNull CommandContext<CommandSourceStack> context) {
-        FakePlayer player = isFakePlayerValid(context);
+        ServerPlayer player = getPlayerByPermission(context);
         if (player == null) return 0;
         PlayerActionPack actionPack = ((IServerPlayerInjector) player).getActionPack();
         String s = ModCommands.getArg(context, "rotation", StringArgumentType::getString);
@@ -468,7 +468,7 @@ public class PlayerCommand {
     }
 
     public static int hotbar(@NotNull CommandContext<CommandSourceStack> context) {
-        FakePlayer player = isFakePlayerValid(context);
+        ServerPlayer player = getPlayerByPermission(context);
         if (player == null) return 0;
         PlayerActionPack actionPack = ((IServerPlayerInjector) player).getActionPack();
         int slot;
@@ -487,14 +487,14 @@ public class PlayerCommand {
     }
 
     public static int stopActions(@NotNull CommandContext<CommandSourceStack> context) {
-        FakePlayer player = isFakePlayerValid(context);
+        ServerPlayer player = getPlayerByPermission(context);
         if (player == null) return 0;
         PlayerActionPack actionPack = ((IServerPlayerInjector) player).getActionPack();
         actionPack.stopAll();
         return 1;
     }
 
-    private static @Nullable ServerPlayer isThereFakePlayer(@NotNull CommandContext<CommandSourceStack> context) {
+    private static @Nullable ServerPlayer getPlayer(@NotNull CommandContext<CommandSourceStack> context) {
         String name = ModCommands.getArg(context, "name", StringArgumentType::getString);
         if (name == null) {
             context.getSource().sendFailure(TranslationUtil.trans("silicone_dolls.commands.tips.invalid_name").withStyle(ChatFormatting.RED));
@@ -509,11 +509,22 @@ public class PlayerCommand {
         return playerByName;
     }
 
-    private static @Nullable FakePlayer isFakePlayerValid(@NotNull CommandContext<CommandSourceStack> context) {
-        ServerPlayer player = isThereFakePlayer(context);
+    private static @Nullable FakePlayer getFakePlayer(@NotNull CommandContext<CommandSourceStack> context) {
+        ServerPlayer player = getPlayer(context);
         if (player == null) return null;
         if (player instanceof FakePlayer fakePlayer) return fakePlayer;
         context.getSource().sendFailure(TranslationUtil.trans("silicone_dolls.commands.tips.not_fake", player.getName().getString()).withStyle(ChatFormatting.RED));
+        return null;
+    }
+
+    private static @Nullable ServerPlayer getPlayerByPermission(@NotNull CommandContext<CommandSourceStack> context) {
+        ServerPlayer player = getPlayer(context);
+        if (player == null) return null;
+        if (player instanceof FakePlayer fakePlayer) return fakePlayer;
+        CommandSourceStack stack = context.getSource();
+        if (stack.hasPermission(Commands.LEVEL_GAMEMASTERS)) return player;
+        if (stack.getPlayer() == player) return player;
+        stack.sendFailure(TranslationUtil.trans("silicone_dolls.commands.tips.no_permission", player.getName().getString()).withStyle(ChatFormatting.RED));
         return null;
     }
 

@@ -6,6 +6,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.mojang.logging.LogUtils;
 import dev.anvilcraft.rg.api.RGAdditional;
+import dev.anvilcraft.rg.api.RGValidator;
 import dev.anvilcraft.rg.api.server.ServerRGRuleManager;
 import dev.anvilcraft.rg.api.server.TranslationUtil;
 import dev.anvilcraft.rg.api.event.ServerAboutToStopEvent;
@@ -136,8 +137,10 @@ public class SiliconeDolls implements RGAdditional {
             if (entity instanceof Player && ClientUtils.isFakePlayer(player)) {
                 event.setCancellationResult(InteractionResult.CONSUME);
             }
-        } else {
-            if ((SiliconeDollsServerRules.openFakePlayerInventory || RuleUtils.openFakePlayerEnderChest(player)) && entity instanceof FakePlayer fakePlayer) {
+        } else if (entity instanceof Player fakePlayer) {
+            boolean flag = RGValidator.CommandRuleValidator.hasPermission(() -> SiliconeDollsServerRules.openRealPlayerInventory, player.createCommandSourceStack());
+            flag = (entity instanceof FakePlayer fake && !fake.isShadow()) || flag;
+            if ((SiliconeDollsServerRules.openFakePlayerInventory || RuleUtils.openFakePlayerEnderChest(player)) && flag) {
                 // 打开物品栏
                 InteractionResult result = FakePlayerContainer.openInventory(player, fakePlayer);
                 if (result != InteractionResult.PASS) {

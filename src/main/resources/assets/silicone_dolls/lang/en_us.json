@@ -42,6 +42,9 @@
   "silicone_dolls.rolling_gate.rule.open_fake_player_inventory": "Open Fake Player Inventory",
   "silicone_dolls.rolling_gate.rule.open_fake_player_inventory.desc": "Allow player to open the fake player's inventory",
 
+  "silicone_dolls.rolling_gate.rule.open_real_player_inventory": "Open Real Player Inventory",
+  "silicone_dolls.rolling_gate.rule.open_real_player_inventory.desc": "Allow player to open the real player's inventory and ender chest",
+
   "silicone_dolls.rolling_gate.rule.open_fake_player_ender_chest": "Open Fake Player Ender Chest",
   "silicone_dolls.rolling_gate.rule.open_fake_player_ender_chest.desc": "Allow player to open the fake player's ender chest",
 

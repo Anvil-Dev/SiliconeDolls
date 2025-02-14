@@ -41,6 +41,13 @@ public class SiliconeDollsServerRules {
     )
     public static boolean openFakePlayerInventory = false;
 
+    @Rule(
+        allowed = {"ops", "true", "false", "1", "2", "3", "4"},
+        categories = SiliconeDolls.MODID,
+        validator = RGValidator.CommandRuleValidator.class
+    )
+    public static String openRealPlayerInventory = "false";
+
     public static class OpenFakePlayerEnderChestValidator extends RGValidator.StringInSetValidator {
         @Override
         public Set<String> getSet() {

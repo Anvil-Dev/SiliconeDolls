@@ -42,6 +42,9 @@
   "silicone_dolls.rolling_gate.rule.open_fake_player_inventory": "假玩家背包",
   "silicone_dolls.rolling_gate.rule.open_fake_player_inventory.desc": "允许玩家打开假玩家的背包",
 
+  "silicone_dolls.rolling_gate.rule.open_real_player_inventory": "玩家背包",
+  "silicone_dolls.rolling_gate.rule.open_real_player_inventory.desc": "允许玩家打开假玩家的背包和末影箱",
+
   "silicone_dolls.rolling_gate.rule.open_fake_player_ender_chest": "假玩家末影箱",
   "silicone_dolls.rolling_gate.rule.open_fake_player_ender_chest.desc": "允许玩家打开假玩家的末影箱",
 
