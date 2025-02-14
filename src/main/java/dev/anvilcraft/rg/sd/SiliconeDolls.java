@@ -115,17 +115,19 @@ public class SiliconeDolls implements RGAdditional {
     @SubscribeEvent
     public void onPlayerTick(@NotNull PlayerTickEvent.Post event) {
         Player player = event.getEntity();
-        if (player instanceof FakePlayer fakePlayer && fakePlayer.isAlive()) {
+        if (player.isAlive()) {
             Map.Entry<FakePlayerInventoryContainer, FakePlayerEnderChestContainer> entry
                 = SiliconeDolls.FAKE_PLAYER_INVENTORY_CONTAINER_MAP.get(player);
             entry.getKey().tick();
             entry.getValue().tick();
-        } else //noinspection resource
+        } else {
+            //noinspection resource
             if (player.level().isClientSide) {
                 if (player.containerMenu instanceof ClientMenuTick tick) {
                     tick.siliconeDolls$tick();
                 }
             }
+        }
     }
 
     @SubscribeEvent
