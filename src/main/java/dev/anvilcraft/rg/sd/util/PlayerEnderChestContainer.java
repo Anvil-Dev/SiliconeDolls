@@ -14,13 +14,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-public class FakePlayerEnderChestContainer extends FakePlayerContainer {
+public class PlayerEnderChestContainer extends PlayerContainer {
     public final NonNullList<ItemStack> items;
     private final NonNullList<ItemStack> buttons = NonNullList.withSize(27, ItemStack.EMPTY);
     private final List<NonNullList<ItemStack>> compartments;
     private final @NotNull PlayerActionPack ap;
 
-    public FakePlayerEnderChestContainer(Player player) {
+    public PlayerEnderChestContainer(Player player) {
         super(player);
         this.items = this.player.getEnderChestInventory().getItems();
         this.compartments = ImmutableList.of(this.items, this.buttons);

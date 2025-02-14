@@ -16,9 +16,7 @@ import dev.anvilcraft.rg.sd.entity.PlayerActionPack;
 import dev.anvilcraft.rg.sd.init.ModCommands;
 import dev.anvilcraft.rg.sd.util.ClientMenuTick;
 import dev.anvilcraft.rg.sd.util.ClientUtils;
-import dev.anvilcraft.rg.sd.util.FakePlayerContainer;
-import dev.anvilcraft.rg.sd.util.FakePlayerEnderChestContainer;
-import dev.anvilcraft.rg.sd.util.FakePlayerInventoryContainer;
+import dev.anvilcraft.rg.sd.util.PlayerContainer;
 import dev.anvilcraft.rg.sd.util.FakePlayerResident;
 import dev.anvilcraft.rg.sd.util.RuleUtils;
 import dev.anvilcraft.rg.tools.serializer.DimTypeSerializer;
@@ -27,6 +25,7 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
@@ -53,7 +52,6 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -71,7 +69,6 @@ public class SiliconeDolls implements RGAdditional {
     public static final String MODID = "silicone_dolls";
     public static final Logger LOGGER = LogUtils.getLogger();
     public static final Map<Long, Collection<Consumer<MinecraftServer>>> PLAN_FUNCTION = new TreeMap<>();
-    public static final HashMap<Player, Map.Entry<FakePlayerInventoryContainer, FakePlayerEnderChestContainer>> FAKE_PLAYER_INVENTORY_CONTAINER_MAP = new HashMap<>();
 
     public SiliconeDolls(@NotNull @SuppressWarnings("unused") IEventBus modEventBus, @NotNull ModContainer modContainer) {
         NeoForge.EVENT_BUS.register(this);
@@ -115,17 +112,10 @@ public class SiliconeDolls implements RGAdditional {
     @SubscribeEvent
     public void onPlayerTick(@NotNull PlayerTickEvent.Post event) {
         Player player = event.getEntity();
-        if (player.isAlive()) {
-            Map.Entry<FakePlayerInventoryContainer, FakePlayerEnderChestContainer> entry
-                = SiliconeDolls.FAKE_PLAYER_INVENTORY_CONTAINER_MAP.get(player);
-            entry.getKey().tick();
-            entry.getValue().tick();
-        } else {
-            //noinspection resource
-            if (player.level().isClientSide) {
-                if (player.containerMenu instanceof ClientMenuTick tick) {
-                    tick.siliconeDolls$tick();
-                }
+        //noinspection resource
+        if (player.level().isClientSide) {
+            if (player.containerMenu instanceof ClientMenuTick tick) {
+                tick.siliconeDolls$tick();
             }
         }
     }
@@ -139,12 +129,12 @@ public class SiliconeDolls implements RGAdditional {
             if (entity instanceof Player && ClientUtils.isFakePlayer(player)) {
                 event.setCancellationResult(InteractionResult.CONSUME);
             }
-        } else if (entity instanceof Player fakePlayer) {
+        } else if (player instanceof ServerPlayer serverPlayer && entity instanceof ServerPlayer otherPlayer) {
             boolean flag = RGValidator.CommandRuleValidator.hasPermission(() -> SiliconeDollsServerRules.openRealPlayerInventory, player.createCommandSourceStack());
             flag = (entity instanceof FakePlayer fake && !fake.isShadow()) || flag;
             if ((SiliconeDollsServerRules.openFakePlayerInventory || RuleUtils.openFakePlayerEnderChest(player)) && flag) {
                 // 打开物品栏
-                InteractionResult result = FakePlayerContainer.openInventory(player, fakePlayer);
+                InteractionResult result = PlayerContainer.openInventory(serverPlayer, otherPlayer);
                 if (result != InteractionResult.PASS) {
                     player.stopUsingItem();
                     event.setCancellationResult(result);
@@ -164,15 +154,6 @@ public class SiliconeDolls implements RGAdditional {
             // 清除摔落高度
             player.fallDistance = 0;
         }
-        SiliconeDolls.FAKE_PLAYER_INVENTORY_CONTAINER_MAP.put(player, Map.entry(
-            new FakePlayerInventoryContainer(player), new FakePlayerEnderChestContainer(player)
-        ));
-    }
-
-    @SubscribeEvent
-    public void onPlayerLoggedOut(PlayerEvent.@NotNull PlayerLoggedOutEvent event) {
-        Player player = event.getEntity();
-        SiliconeDolls.FAKE_PLAYER_INVENTORY_CONTAINER_MAP.remove(player);
     }
 
     @SubscribeEvent
@@ -180,7 +161,7 @@ public class SiliconeDolls implements RGAdditional {
         MinecraftServer server = event.getServer();
         if (SiliconeDollsServerRules.fakePlayerResident) {
             JsonObject fakePlayerList = new JsonObject();
-            SiliconeDolls.FAKE_PLAYER_INVENTORY_CONTAINER_MAP.keySet().forEach(player -> {
+            server.getPlayerList().getPlayers().forEach(player -> {
                 if (!(player instanceof FakePlayer)) return;
                 if (player.saveWithoutId(new CompoundTag()).contains("rolling_gate.NoResident")) return;
                 String username = player.getGameProfile().getName();
@@ -194,7 +175,6 @@ public class SiliconeDolls implements RGAdditional {
                 SiliconeDolls.LOGGER.error(e.getMessage(), e);
             }
         }
-        SiliconeDolls.FAKE_PLAYER_INVENTORY_CONTAINER_MAP.clear();
     }
 
     @SubscribeEvent

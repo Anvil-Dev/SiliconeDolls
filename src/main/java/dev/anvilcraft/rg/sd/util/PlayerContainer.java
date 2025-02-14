@@ -1,11 +1,10 @@
 package dev.anvilcraft.rg.sd.util;
 
 import dev.anvilcraft.rg.api.server.TranslationUtil;
-import dev.anvilcraft.rg.sd.SiliconeDolls;
 import dev.anvilcraft.rg.sd.SiliconeDollsServerRules;
-import dev.anvilcraft.rg.sd.entity.FakePlayer;
 import dev.anvilcraft.rg.tools.chest.menu.CustomChestMenu;
 import net.minecraft.core.NonNullList;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.ContainerHelper;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.SimpleMenuProvider;
@@ -16,10 +15,10 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Map;
 
-public abstract class FakePlayerContainer extends CustomChestMenu {
+public abstract class PlayerContainer extends CustomChestMenu {
     protected final Player player;
 
-    public FakePlayerContainer(Player player) {
+    public PlayerContainer(Player player) {
         this.player = player;
     }
 
@@ -87,7 +86,7 @@ public abstract class FakePlayerContainer extends CustomChestMenu {
         return this.player.isAlive() && player.distanceToSqr(this.player) <= 64.0;
     }
 
-    public static InteractionResult openInventory(@NotNull Player player, Player fakePlayer) {
+    public static InteractionResult openInventory(@NotNull ServerPlayer player, ServerPlayer otherPlayer) {
         SimpleMenuProvider provider;
         if (player.isShiftKeyDown()) {
             // 打开末影箱
@@ -95,18 +94,18 @@ public abstract class FakePlayerContainer extends CustomChestMenu {
                 provider = new SimpleMenuProvider(
                     (i, inventory, p) -> ChestMenu.sixRows(
                         i, inventory,
-                        SiliconeDolls.FAKE_PLAYER_INVENTORY_CONTAINER_MAP.get(fakePlayer).getValue()
+                        ((IServerPlayerInjector) otherPlayer).getEnderChestContainer()
                     ),
-                    TranslationUtil.trans("silicone_dolls.player.ender_chest", fakePlayer.getDisplayName())
+                    TranslationUtil.trans("silicone_dolls.player.ender_chest", otherPlayer.getDisplayName())
                 );
             } else {
                 // 打开额外功能菜单
                 provider = new SimpleMenuProvider(
                     (i, inventory, p) -> ChestMenu.threeRows(
                         i, inventory,
-                        SiliconeDolls.FAKE_PLAYER_INVENTORY_CONTAINER_MAP.get(fakePlayer).getValue()
+                        ((IServerPlayerInjector) otherPlayer).getEnderChestContainer()
                     ),
-                    TranslationUtil.trans("silicone_dolls.player.other_controller", fakePlayer.getDisplayName())
+                    TranslationUtil.trans("silicone_dolls.player.other_controller", otherPlayer.getDisplayName())
                 );
             }
         } else if (SiliconeDollsServerRules.openFakePlayerInventory) {
@@ -114,9 +113,9 @@ public abstract class FakePlayerContainer extends CustomChestMenu {
             provider = new SimpleMenuProvider(
                 (i, inventory, p) -> new FakePlayerInventoryMenu(
                     i, inventory,
-                    SiliconeDolls.FAKE_PLAYER_INVENTORY_CONTAINER_MAP.get(fakePlayer).getKey()
+                    ((IServerPlayerInjector) otherPlayer).getInventoryContainer()
                 ),
-                TranslationUtil.trans("silicone_dolls.player.inventory", fakePlayer.getDisplayName())
+                TranslationUtil.trans("silicone_dolls.player.inventory", otherPlayer.getDisplayName())
             );
         } else {
             return InteractionResult.PASS;

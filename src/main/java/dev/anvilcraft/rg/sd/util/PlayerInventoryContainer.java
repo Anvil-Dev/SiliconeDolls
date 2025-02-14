@@ -19,7 +19,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.BiConsumer;
 
-public class FakePlayerInventoryContainer extends FakePlayerContainer {
+public class PlayerInventoryContainer extends PlayerContainer {
     public final NonNullList<ItemStack> items;
     public final NonNullList<ItemStack> armor;
     public final NonNullList<ItemStack> offhand;
@@ -28,14 +28,14 @@ public class FakePlayerInventoryContainer extends FakePlayerContainer {
     private final PlayerActionPack ap;
     private final RadioList hotbar;
 
-    public FakePlayerInventoryContainer(Player player) {
+    public PlayerInventoryContainer(Player player) {
         super(player);
         this.items = this.player.getInventory().items;
         this.armor = this.player.getInventory().armor;
         this.offhand = this.player.getInventory().offhand;
         this.ap = ((IServerPlayerInjector) this.player).getActionPack();
         this.compartments = ImmutableList.of(this.items, this.armor, this.offhand, this.buttons);
-        this.hotbar = FakePlayerInventoryContainer.createHotbarButton(this::addButton, this.ap);
+        this.hotbar = PlayerInventoryContainer.createHotbarButton(this::addButton, this.ap);
         this.createButton();
     }
 
