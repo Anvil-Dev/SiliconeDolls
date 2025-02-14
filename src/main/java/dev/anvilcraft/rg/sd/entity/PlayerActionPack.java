@@ -509,7 +509,7 @@ public class PlayerActionPack {
                 player.setJumping(false);
             }
         },
-        DROP_ITEM {
+        DROP {
             @Override
             boolean execute(ServerPlayer player, Action action) {
                 player.resetLastActionTime();
