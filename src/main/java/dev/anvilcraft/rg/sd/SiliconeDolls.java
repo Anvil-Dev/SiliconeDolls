@@ -4,6 +4,8 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.mojang.brigadier.CommandDispatcher;
+import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.logging.LogUtils;
 import dev.anvilcraft.rg.api.RGAdditional;
 import dev.anvilcraft.rg.api.RGValidator;
@@ -20,6 +22,7 @@ import dev.anvilcraft.rg.sd.util.PlayerContainer;
 import dev.anvilcraft.rg.sd.util.FakePlayerResident;
 import dev.anvilcraft.rg.sd.util.RuleUtils;
 import dev.anvilcraft.rg.tools.serializer.DimTypeSerializer;
+import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
@@ -31,9 +34,11 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.storage.LevelResource;
 import net.minecraft.world.phys.Vec3;
+import net.neoforged.bus.api.EventPriority;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.ModContainer;
+import net.neoforged.fml.ModList;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.RegisterCommandsEvent;
@@ -42,6 +47,7 @@ import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
 import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 import net.neoforged.neoforge.event.tick.ServerTickEvent;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 
 import java.io.BufferedReader;
@@ -86,7 +92,7 @@ public class SiliconeDolls implements RGAdditional {
         PLAN_FUNCTION.computeIfAbsent(time, k -> new ArrayList<>()).add(consumer);
     }
 
-    @SubscribeEvent
+    @SubscribeEvent(priority = EventPriority.LOWEST)
     public void registerCommands(@NotNull RegisterCommandsEvent event) {
         ModCommands.register(event.getDispatcher());
     }
@@ -195,6 +201,23 @@ public class SiliconeDolls implements RGAdditional {
             }
             //noinspection ResultOfMethodCallIgnored
             file.delete();
+        }
+    }
+
+    public static boolean isLoaded(String modid) {
+        return ModList.get().isLoaded(modid);
+    }
+
+    public static @Nullable LiteralArgumentBuilder<CommandSourceStack> loadYSMCombat(CommandDispatcher<CommandSourceStack> dispatcher) {
+        if (!SiliconeDolls.isLoaded("yes_steve_model")) return null;
+        ClassLoader loader = SiliconeDolls.class.getClassLoader();
+        try {
+            Class<?> modelCommand = loader.loadClass("dev.anvilcraft.rg.sd.combat.ysm.ModelCommand");
+            // noinspection unchecked
+            return (LiteralArgumentBuilder<CommandSourceStack>) modelCommand.getMethod("register", dispatcher.getClass()).invoke(null, dispatcher);
+        } catch (Exception e) {
+            SiliconeDolls.LOGGER.error(e.getMessage(), e);
+            return null;
         }
     }
 }

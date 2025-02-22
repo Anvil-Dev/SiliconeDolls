@@ -4,6 +4,8 @@ import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.FloatArgumentType;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
+import com.mojang.brigadier.builder.LiteralArgumentBuilder;
+import com.mojang.brigadier.builder.RequiredArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.suggestion.SuggestionProvider;
@@ -11,6 +13,7 @@ import dev.anvilcraft.rg.api.RGValidator;
 import com.mojang.brigadier.suggestion.Suggestions;
 import com.mojang.brigadier.suggestion.SuggestionsBuilder;
 import dev.anvilcraft.rg.api.server.TranslationUtil;
+import dev.anvilcraft.rg.sd.SiliconeDolls;
 import dev.anvilcraft.rg.sd.SiliconeDollsServerRules;
 import dev.anvilcraft.rg.sd.entity.FakePlayer;
 import dev.anvilcraft.rg.sd.entity.PlayerActionPack;
@@ -43,149 +46,150 @@ import java.util.concurrent.CompletableFuture;
 
 public class PlayerCommand {
     public static void register(@NotNull CommandDispatcher<CommandSourceStack> dispatcher) {
-        dispatcher.register(
-            Commands.literal("player")
-                .requires(source -> RGValidator.CommandRuleValidator.hasPermission(() -> SiliconeDollsServerRules.commandPlayer, source))
-                .then(
-                    Commands.argument("name", StringArgumentType.word())
-                        .suggests(PlayerCommand.suggestPlayer())
-                        .then(
-                            Commands.literal("spawn")
-                                .executes(PlayerCommand::spawnPlayer)
-                                .then(
-                                    Commands.literal("at")
-                                        .then(
-                                            Commands.argument("pos", Vec3Argument.vec3())
-                                                .executes(PlayerCommand::spawnPlayer)
-                                                .then(
-                                                    Commands.literal("facing")
-                                                        .then(
-                                                            Commands.argument("facing", RotationArgument.rotation())
-                                                                .executes(PlayerCommand::spawnPlayer)
-                                                                .then(
-                                                                    Commands.literal("in")
-                                                                        .then(
-                                                                            Commands.argument("dimension", DimensionArgument.dimension())
-                                                                                .executes(PlayerCommand::spawnPlayer)
-                                                                                .then(
-                                                                                    Commands.literal("in")
-                                                                                        .then(
-                                                                                            Commands.argument("gamemode", GameModeArgument.gameMode())
-                                                                                                .executes(PlayerCommand::spawnPlayer)
-                                                                                        )
-                                                                                )
-                                                                        )
-                                                                )
-                                                        )
-                                                )
-                                        )
-                                )
-                        )
-                        .then(
-                            Commands.literal("kill")
-                                .executes(PlayerCommand::kill)
-                        )
-                        .then(
-                            //use, jump, attack, drop, swapHands
-                            Commands.argument("action", StringArgumentType.word())
-                                .suggests(PlayerCommand::suggestAction)
-                                .executes(ctx -> actions(ctx, "once"))
-                                .then(Commands.literal("once").executes(ctx -> actions(ctx, "once")))
-                                .then(Commands.literal("continue").executes(ctx -> actions(ctx, "continues")))
-                                .then(
-                                    Commands.literal("interval")
-                                        .then(
-                                            Commands.argument("time", IntegerArgumentType.integer(1))
-                                                .executes(ctx -> actions(ctx, "interval"))
-                                        )
-                                )
-                        )
-                        .then(
-                            Commands.literal("sneak")
-                                .executes(ctx -> sneak(ctx, true))
-                        )
-                        .then(
-                            Commands.literal("unsneak")
-                                .executes(ctx -> sneak(ctx, false))
-                        )
-                        .then(
-                            Commands.literal("sprint")
-                                .executes(ctx -> sprint(ctx, true))
-                        )
-                        .then(
-                            Commands.literal("unsprint")
-                                .executes(ctx -> sprint(ctx, false))
-                        )
-                        .then(
-                            Commands.literal("mount")
-                                .executes(ctx -> mount(ctx, true))
-                        )
-                        .then(
-                            Commands.literal("dismount")
-                                .executes(ctx -> mount(ctx, false))
-                        ).then(
-                            Commands.literal("look")
-                                .then(
-                                    Commands.literal("at")
-                                        .then(
-                                            Commands.argument("pos", Vec3Argument.vec3())
-                                                .executes(PlayerCommand::lookAt)
-                                        )
-                                )
-                                .then(
-                                    Commands.argument("direction", StringArgumentType.word())
-                                        .suggests(PlayerCommand::suggestDirection)
-                                        .executes(PlayerCommand::lookDirection)
-                                )
-                        ).then(
-                            Commands.literal("turn")
-                                .then(
-                                    Commands.argument("x", FloatArgumentType.floatArg())
-                                        .then(
-                                            Commands.argument("y", FloatArgumentType.floatArg())
-                                                .executes(PlayerCommand::turn)
-                                        )
-                                )
-                                .then(
-                                    Commands.argument("rotation", StringArgumentType.word())
-                                        .suggests(PlayerCommand::suggestRotation)
-                                        .executes(PlayerCommand::turnRotation)
-                                )
-                        )
-                        .then(
-                            Commands.literal("dropStack")
-                                .executes(PlayerCommand::dropStack)
-                                .then(
-                                    Commands.argument("all", StringArgumentType.word())
-                                        .suggests(PlayerCommand::suggestDropStack)
-                                        .executes(PlayerCommand::dropStack)
-                                )
-                        )
-                        .then(
-                            Commands.literal("move")
-                                .then(
-                                    Commands.argument("rotation", StringArgumentType.word())
-                                        .suggests(PlayerCommand::suggestRotation)
-                                        .executes(PlayerCommand::move)
-                                )
-                        )
-                        .then(
-                            Commands.literal("hotbar")
-                                .then(
-                                    Commands.argument("slot", IntegerArgumentType.integer(1, 9))
-                                        .executes(PlayerCommand::hotbar)
-                                )
-                        )
-                        .then(
-                            Commands.literal("shadow")
-                                .executes(PlayerCommand::shadowPlayer)
-                        )
-                        .then(
-                            Commands.literal("stop")
-                                .executes(PlayerCommand::stopActions)
-                        )
-                )
-        );
+        RequiredArgumentBuilder<CommandSourceStack, String> player = Commands.argument("name", StringArgumentType.word())
+            .suggests(PlayerCommand.suggestPlayer())
+            .then(
+                Commands.literal("spawn")
+                    .executes(PlayerCommand::spawnPlayer)
+                    .then(
+                        Commands.literal("at")
+                            .then(
+                                Commands.argument("pos", Vec3Argument.vec3())
+                                    .executes(PlayerCommand::spawnPlayer)
+                                    .then(
+                                        Commands.literal("facing")
+                                            .then(
+                                                Commands.argument("facing", RotationArgument.rotation())
+                                                    .executes(PlayerCommand::spawnPlayer)
+                                                    .then(
+                                                        Commands.literal("in")
+                                                            .then(
+                                                                Commands.argument("dimension", DimensionArgument.dimension())
+                                                                    .executes(PlayerCommand::spawnPlayer)
+                                                                    .then(
+                                                                        Commands.literal("in")
+                                                                            .then(
+                                                                                Commands.argument("gamemode", GameModeArgument.gameMode())
+                                                                                    .executes(PlayerCommand::spawnPlayer)
+                                                                            )
+                                                                    )
+                                                            )
+                                                    )
+                                            )
+                                    )
+                            )
+                    )
+            )
+            .then(
+                Commands.literal("kill")
+                    .executes(PlayerCommand::kill)
+            )
+            .then(
+                //use, jump, attack, drop, swapHands
+                Commands.argument("action", StringArgumentType.word())
+                    .suggests(PlayerCommand::suggestAction)
+                    .executes(ctx -> actions(ctx, "once"))
+                    .then(Commands.literal("once").executes(ctx -> actions(ctx, "once")))
+                    .then(Commands.literal("continue").executes(ctx -> actions(ctx, "continues")))
+                    .then(
+                        Commands.literal("interval")
+                            .then(
+                                Commands.argument("time", IntegerArgumentType.integer(1))
+                                    .executes(ctx -> actions(ctx, "interval"))
+                            )
+                    )
+            )
+            .then(
+                Commands.literal("sneak")
+                    .executes(ctx -> sneak(ctx, true))
+            )
+            .then(
+                Commands.literal("unsneak")
+                    .executes(ctx -> sneak(ctx, false))
+            )
+            .then(
+                Commands.literal("sprint")
+                    .executes(ctx -> sprint(ctx, true))
+            )
+            .then(
+                Commands.literal("unsprint")
+                    .executes(ctx -> sprint(ctx, false))
+            )
+            .then(
+                Commands.literal("mount")
+                    .executes(ctx -> mount(ctx, true))
+            )
+            .then(
+                Commands.literal("dismount")
+                    .executes(ctx -> mount(ctx, false))
+            ).then(
+                Commands.literal("look")
+                    .then(
+                        Commands.literal("at")
+                            .then(
+                                Commands.argument("pos", Vec3Argument.vec3())
+                                    .executes(PlayerCommand::lookAt)
+                            )
+                    )
+                    .then(
+                        Commands.argument("direction", StringArgumentType.word())
+                            .suggests(PlayerCommand::suggestDirection)
+                            .executes(PlayerCommand::lookDirection)
+                    )
+            ).then(
+                Commands.literal("turn")
+                    .then(
+                        Commands.argument("x", FloatArgumentType.floatArg())
+                            .then(
+                                Commands.argument("y", FloatArgumentType.floatArg())
+                                    .executes(PlayerCommand::turn)
+                            )
+                    )
+                    .then(
+                        Commands.argument("rotation", StringArgumentType.word())
+                            .suggests(PlayerCommand::suggestRotation)
+                            .executes(PlayerCommand::turnRotation)
+                    )
+            )
+            .then(
+                Commands.literal("dropStack")
+                    .executes(PlayerCommand::dropStack)
+                    .then(
+                        Commands.argument("all", StringArgumentType.word())
+                            .suggests(PlayerCommand::suggestDropStack)
+                            .executes(PlayerCommand::dropStack)
+                    )
+            )
+            .then(
+                Commands.literal("move")
+                    .then(
+                        Commands.argument("rotation", StringArgumentType.word())
+                            .suggests(PlayerCommand::suggestRotation)
+                            .executes(PlayerCommand::move)
+                    )
+            )
+            .then(
+                Commands.literal("hotbar")
+                    .then(
+                        Commands.argument("slot", IntegerArgumentType.integer(1, 9))
+                            .executes(PlayerCommand::hotbar)
+                    )
+            )
+            .then(
+                Commands.literal("shadow")
+                    .executes(PlayerCommand::shadowPlayer)
+            )
+            .then(
+                Commands.literal("stop")
+                    .executes(PlayerCommand::stopActions)
+            );
+        LiteralArgumentBuilder<CommandSourceStack> ysm = SiliconeDolls.loadYSMCombat(dispatcher);
+        SiliconeDolls.LOGGER.info("yes_steve_model: {}", ysm);
+        if (ysm != null) player.then(ysm);
+        LiteralArgumentBuilder<CommandSourceStack> builder = Commands.literal("player")
+            .requires(source -> RGValidator.CommandRuleValidator.hasPermission(() -> SiliconeDollsServerRules.commandPlayer, source))
+            .then(player);
+        dispatcher.register(builder);
     }
 
     public static @NotNull SuggestionProvider<CommandSourceStack> suggestPlayer() {
@@ -494,7 +498,7 @@ public class PlayerCommand {
         return 1;
     }
 
-    private static @Nullable ServerPlayer getPlayer(@NotNull CommandContext<CommandSourceStack> context) {
+    public static @Nullable ServerPlayer getPlayer(@NotNull CommandContext<CommandSourceStack> context) {
         String name = ModCommands.getArg(context, "name", StringArgumentType::getString);
         if (name == null) {
             context.getSource().sendFailure(TranslationUtil.trans("silicone_dolls.commands.tips.invalid_name").withStyle(ChatFormatting.RED));
@@ -509,7 +513,7 @@ public class PlayerCommand {
         return playerByName;
     }
 
-    private static @Nullable FakePlayer getFakePlayer(@NotNull CommandContext<CommandSourceStack> context) {
+    public static @Nullable FakePlayer getFakePlayer(@NotNull CommandContext<CommandSourceStack> context) {
         ServerPlayer player = getPlayer(context);
         if (player == null) return null;
         if (player instanceof FakePlayer fakePlayer) return fakePlayer;
@@ -517,7 +521,7 @@ public class PlayerCommand {
         return null;
     }
 
-    private static @Nullable ServerPlayer getPlayerByPermission(@NotNull CommandContext<CommandSourceStack> context) {
+    public static @Nullable ServerPlayer getPlayerByPermission(@NotNull CommandContext<CommandSourceStack> context) {
         ServerPlayer player = getPlayer(context);
         if (player == null) return null;
         if (player instanceof FakePlayer fakePlayer) return fakePlayer;
