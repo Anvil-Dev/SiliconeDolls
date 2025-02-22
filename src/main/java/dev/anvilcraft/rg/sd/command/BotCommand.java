@@ -10,6 +10,7 @@ import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.suggestion.SuggestionProvider;
 import dev.anvilcraft.rg.api.RGValidator;
+import dev.anvilcraft.rg.api.server.TranslationUtil;
 import dev.anvilcraft.rg.sd.SiliconeDolls;
 import dev.anvilcraft.rg.sd.SiliconeDollsServerRules;
 import dev.anvilcraft.rg.sd.entity.FakeClientConnection;
@@ -100,6 +101,7 @@ public class BotCommand {
                 .then(
                     Commands.literal("group")
                         .requires(source -> RGValidator.CommandRuleValidator.hasPermission(() -> SiliconeDollsServerRules.commandBot, source))
+                        .executes(BotCommand::groupList)
                         .then(
                             Commands.literal("create")
                                 .then(
@@ -187,12 +189,13 @@ public class BotCommand {
         int size = BOT_INFO.map.size();
         int maxPage = size / pageSize + 1;
         if (page > maxPage) {
-            context.getSource().sendFailure(Component.literal("No such page %s".formatted(page)));
+            context.getSource().sendFailure(TranslationUtil.trans("silicone_dolls.commands.tips.no_such_page", page));
             return 0;
         }
         BotInfo[] botInfos = BOT_INFO.map.values().toArray(new BotInfo[0]);
+
         context.getSource().sendSystemMessage(
-            Component.literal("======= Bot List (Page %s/%s) =======".formatted(page, maxPage))
+            TranslationUtil.trans("silicone_dolls.commands.title.bot_list", page, maxPage)
                 .withStyle(ChatFormatting.YELLOW)
         );
         for (int i = (page - 1) * pageSize; i < size && i < page * pageSize; i++) {
@@ -212,19 +215,19 @@ public class BotCommand {
         MutableComponent load = Component.literal("[↑]").withStyle(
             Style.EMPTY
                 .applyFormat(notOnline ? ChatFormatting.GREEN : ChatFormatting.GRAY)
-                .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Component.literal("Load bot")))
+                .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, TranslationUtil.trans("silicone_dolls.commands.button.bot.load")))
                 .withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/bot load %s".formatted(botInfo.name)))
         );
         MutableComponent remove = Component.literal("[↓]").withStyle(
             Style.EMPTY
                 .applyFormat(notOnline ? ChatFormatting.GRAY : ChatFormatting.RED)
-                .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Component.literal("Unload bot")))
+                .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, TranslationUtil.trans("silicone_dolls.commands.button.bot.unload")))
                 .withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/player %s kill".formatted(botInfo.name)))
         );
         MutableComponent delete = Component.literal("[\uD83D\uDDD1]").withStyle(
             Style.EMPTY
                 .applyFormat(ChatFormatting.RED)
-                .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Component.literal("Remove bot")))
+                .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, TranslationUtil.trans("silicone_dolls.commands.button.bot.remove")))
                 .withClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, "/bot remove %s".formatted(botInfo.name)))
         );
         MutableComponent component = Component.literal("▶ ")
@@ -256,7 +259,7 @@ public class BotCommand {
                 .append(" ")
                 .append(prevPage)
                 .append(" ")
-                .append(Component.literal("(Page %s/%s)".formatted(page, maxPage)).withStyle(ChatFormatting.YELLOW))
+                .append(TranslationUtil.trans("silicone_dolls.commands.title.page", page, maxPage).withStyle(ChatFormatting.YELLOW))
                 .append(" ")
                 .append(nextPage)
                 .append(" ")
@@ -274,12 +277,12 @@ public class BotCommand {
 
     private static boolean load(String name, Consumer<Component> failure) {
         if (BOT_INFO.server.getPlayerList().getPlayerByName(name) != null) {
-            failure.accept(Component.literal("player %s is already exist.".formatted(name)));
+            failure.accept(TranslationUtil.trans("silicone_dolls.commands.tips.logged", name));
             return false;
         }
         BotInfo botInfo = BOT_INFO.map.getOrDefault(name, null);
         if (botInfo == null) {
-            failure.accept(Component.literal("%s is not exist."));
+            failure.accept(TranslationUtil.trans("silicone_dolls.commands.tips.not_exist", name));
             return false;
         }
         boolean success = false;
@@ -323,7 +326,7 @@ public class BotCommand {
         } catch (Exception e) {
             SiliconeDolls.LOGGER.error(e.getMessage(), e);
         }
-        if (!success) failure.accept(Component.literal("%s is not loaded.".formatted(name)));
+        if (!success) failure.accept(TranslationUtil.trans("silicone_dolls.commands.tips.not_load", name));
         return success;
     }
 
@@ -341,12 +344,12 @@ public class BotCommand {
         CommandSourceStack source = context.getSource();
         ServerPlayer p;
         if (!((p = EntityArgument.getPlayer(context, "player")) instanceof FakePlayer player)) {
-            source.sendFailure(Component.literal("%s is not a fake player.".formatted(p.getGameProfile().getName())));
+            source.sendFailure(TranslationUtil.trans("silicone_dolls.commands.tips.not_fake", p.getGameProfile().getName()));
             return 0;
         }
         String name = player.getGameProfile().getName();
         if (BOT_INFO.map.containsKey(name)) {
-            source.sendFailure(Component.literal("%s is already save.".formatted(name)));
+            source.sendFailure(TranslationUtil.trans("silicone_dolls.commands.tips.already_save", name));
             return 0;
         }
         BotCommand.BOT_INFO.map.put(
@@ -363,7 +366,7 @@ public class BotCommand {
             )
         );
         BOT_INFO.save();
-        source.sendSuccess(() -> Component.literal("%s is added.".formatted(name)), false);
+        source.sendSuccess(() -> TranslationUtil.trans("silicone_dolls.commands.tips.already_save", name), false);
         return 1;
     }
 
@@ -372,10 +375,10 @@ public class BotCommand {
         String name = StringArgumentType.getString(context, "player");
         BotInfo remove = BotCommand.BOT_INFO.map.remove(name);
         if (remove == null) {
-            context.getSource().sendFailure(Component.literal("Bot %s is not exist.".formatted(name)));
+            context.getSource().sendFailure(TranslationUtil.trans("silicone_dolls.commands.tips.not_exist", name));
             return 0;
         }
-        context.getSource().sendSuccess(() -> Component.literal("%s is removed.".formatted(name)), false);
+        context.getSource().sendSuccess(() -> TranslationUtil.trans("silicone_dolls.commands.tips.saved", name), false);
         BOT_INFO.save();
         return 1;
     }
@@ -386,7 +389,7 @@ public class BotCommand {
         CommandSourceStack source = context.getSource();
         String groupName = StringArgumentType.getString(context, "group");
         if (!BOT_GROUP_INFO.map.containsKey(groupName)) {
-            source.sendFailure(Component.literal("Group %s is not found.".formatted(groupName)));
+            source.sendFailure(TranslationUtil.trans("silicone_dolls.commands.tips.group_not_found", groupName));
             return true;
         }
         List<String> botNames = BOT_GROUP_INFO.map.get(groupName).bots;
@@ -418,7 +421,7 @@ public class BotCommand {
         int size = BOT_GROUP_INFO.map.get(groupName).bots.size();
         int maxPage = size / pageSize + 1;
         if (page > maxPage) {
-            context.getSource().sendFailure(Component.literal("No such page %s".formatted(page)));
+            context.getSource().sendFailure(TranslationUtil.trans("silicone_dolls.commands.tips.no_such_page", page));
             return 0;
         }
         ArrayList<BotInfo> botInfos = new ArrayList<>();
@@ -426,7 +429,7 @@ public class BotCommand {
             botInfos.add(BOT_INFO.map.get(botName));
         }
         context.getSource().sendSystemMessage(
-            Component.literal("======= Bot Group %s (Page %s/%s) =======".formatted(groupName, page, maxPage))
+            TranslationUtil.trans("silicone_dolls.commands.title.bot_group_info", groupName, page, maxPage)
                 .withStyle(ChatFormatting.YELLOW)
         );
         for (int i = (page - 1) * pageSize; i < size && i < page * pageSize; i++) {
@@ -456,7 +459,7 @@ public class BotCommand {
         CommandSourceStack source = context.getSource();
         String groupName = StringArgumentType.getString(context, "group");
         if (!BOT_GROUP_INFO.map.containsKey(groupName)) {
-            source.sendFailure(Component.literal("Group %s is not found.".formatted(groupName)));
+            source.sendFailure(TranslationUtil.trans("silicone_dolls.commands.tips.group_not_found", groupName));
             return 0;
         }
         List<String> botNames = BOT_GROUP_INFO.map.get(groupName).bots;
@@ -483,12 +486,12 @@ public class BotCommand {
         String groupName = StringArgumentType.getString(context, "group");
         String botName = StringArgumentType.getString(context, "bot");
         if (!BOT_GROUP_INFO.map.containsKey(groupName)) {
-            source.sendFailure(Component.literal("Group %s is not found.".formatted(groupName)));
+            source.sendFailure(TranslationUtil.trans("silicone_dolls.commands.tips.group_not_found", groupName));
             return 0;
         }
         List<String> botNames = BOT_GROUP_INFO.map.get(groupName).bots;
         if (!botNames.contains(botName)) {
-            source.sendFailure(Component.literal("Bot %s is not found in the %s.".formatted(botName, groupName)));
+            source.sendFailure(TranslationUtil.trans("silicone_dolls.commands.tips.bot_not_in", botName, groupName));
             return 0;
         }
         botNames.remove(botName);
@@ -500,7 +503,7 @@ public class BotCommand {
             )
         );
         BOT_GROUP_INFO.save();
-        source.sendSuccess(() -> Component.literal("Bot %s is removed from %s successfully.".formatted(botName, groupName)), false);
+        source.sendSuccess(() -> TranslationUtil.trans("silicone_dolls.commands.tips.bot_removed", botName, groupName), false);
         return 1;
     }
 
@@ -511,16 +514,17 @@ public class BotCommand {
         String groupName = StringArgumentType.getString(context, "group");
         String botName = StringArgumentType.getString(context, "bot");
         if (!BOT_INFO.map.containsKey(botName)) {
-            source.sendFailure(Component.literal("Bot %s is not found.".formatted(botName)));
+            source.sendFailure(TranslationUtil.trans("silicone_dolls.commands.tips.bot_not_found", botName));
+
             return 0;
         }
         if (!BOT_GROUP_INFO.map.containsKey(groupName)) {
-            source.sendFailure(Component.literal("Group %s is not found.".formatted(groupName)));
+            source.sendFailure(TranslationUtil.trans("silicone_dolls.commands.tips.group_not_found", groupName));
             return 0;
         }
         List<String> botNames = BOT_GROUP_INFO.map.get(groupName).bots;
         if (botNames.contains(botName)) {
-            source.sendFailure(Component.literal("Bot %s is already added.".formatted(botName)));
+            source.sendFailure(TranslationUtil.trans("silicone_dolls.commands.tips.bot_already_added", botName));
             return 0;
         }
         botNames.add(botName);
@@ -532,7 +536,7 @@ public class BotCommand {
             )
         );
         BOT_GROUP_INFO.save();
-        source.sendSuccess(() -> Component.literal("Bot %s is added to %s successfully.".formatted(botName, groupName)), false);
+        source.sendSuccess(() -> TranslationUtil.trans("silicone_dolls.commands.tips.bot_added", botName, groupName), false);
         return 1;
     }
 
@@ -541,7 +545,7 @@ public class BotCommand {
         CommandSourceStack source = context.getSource();
         String groupName = StringArgumentType.getString(context, "name");
         if (BOT_GROUP_INFO.map.containsKey(groupName)) {
-            source.sendFailure(Component.literal("Group %s already exists.".formatted(groupName)));
+            source.sendFailure(TranslationUtil.trans("silicone_dolls.commands.tips.group_already_exists", groupName));
             return 0;
         }
         BOT_GROUP_INFO.map.put(
@@ -549,7 +553,7 @@ public class BotCommand {
             new BotGroupInfo(groupName, new ArrayList<>())
         );
         BOT_GROUP_INFO.save();
-        source.sendSuccess(() -> Component.literal("Group %s created successfully.".formatted(groupName)), false);
+        source.sendSuccess(() -> TranslationUtil.trans("silicone_dolls.commands.tips.group_created_successfully", groupName), false);
         return 1;
     }
 
@@ -558,10 +562,10 @@ public class BotCommand {
         String name = StringArgumentType.getString(context, "name");
         BotGroupInfo remove = BotCommand.BOT_GROUP_INFO.map.remove(name);
         if (remove == null) {
-            context.getSource().sendFailure(Component.literal("Bot Group %s is not exist.".formatted(name)));
+            context.getSource().sendFailure(TranslationUtil.trans("silicone_dolls.commands.tips.group_not_exists", name));
             return 0;
         }
-        context.getSource().sendSuccess(() -> Component.literal("%s is removed.".formatted(name)), false);
+        context.getSource().sendSuccess(() -> TranslationUtil.trans("silicone_dolls.commands.tips.group_removed_player", name), false);
         BOT_GROUP_INFO.save();
         return 1;
     }
@@ -578,12 +582,12 @@ public class BotCommand {
         int size = BOT_GROUP_INFO.map.size();
         int maxPage = size / pageSize + 1;
         if (page > maxPage) {
-            context.getSource().sendFailure(Component.literal("No such page %s".formatted(page)));
+            context.getSource().sendFailure(TranslationUtil.trans("silicone_dolls.commands.tips.no_such_page", page));
             return 0;
         }
         BotGroupInfo[] botGroupInfos = BOT_GROUP_INFO.map.values().toArray(new BotGroupInfo[0]);
         context.getSource().sendSystemMessage(
-            Component.literal("======= Bot Group List (Page %s/%s) =======".formatted(page, maxPage))
+            TranslationUtil.trans("silicone_dolls.commands.title.bot_group_list", page, maxPage)
                 .withStyle(ChatFormatting.YELLOW)
         );
         for (int i = (page - 1) * pageSize; i < size && i < page * pageSize; i++) {
@@ -602,25 +606,25 @@ public class BotCommand {
         MutableComponent load = Component.literal("[↑]").withStyle(
             Style.EMPTY
                 .applyFormat(ChatFormatting.GREEN)
-                .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Component.literal("Load Group")))
+                .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, TranslationUtil.trans("silicone_dolls.commands.button.bot_group.load")))
                 .withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/bot group load %s".formatted(botGroupInfo.name)))
         );
         MutableComponent remove = Component.literal("[↓]").withStyle(
             Style.EMPTY
                 .applyFormat(ChatFormatting.RED)
-                .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Component.literal("Unload Group")))
+                .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, TranslationUtil.trans("silicone_dolls.commands.button.bot_group.unload")))
                 .withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/bot group unload %s".formatted(botGroupInfo.name)))
         );
         MutableComponent info = Component.literal("[i]").withStyle(
             Style.EMPTY
                 .applyFormat(ChatFormatting.RED)
-                .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Component.literal("Group Info")))
+                .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, TranslationUtil.trans("silicone_dolls.commands.button.bot_group.info")))
                 .withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/bot group info %s".formatted(botGroupInfo.name)))
         );
         MutableComponent delete = Component.literal("[\uD83D\uDDD1]").withStyle(
             Style.EMPTY
                 .applyFormat(ChatFormatting.RED)
-                .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Component.literal("Remove Bot Group")))
+                .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, TranslationUtil.trans("silicone_dolls.commands.button.bot_group.remove")))
                 .withClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, "/bot group remove %s".formatted(botGroupInfo.name)))
         );
         MutableComponent component = Component.literal("▶ ").append(name);
