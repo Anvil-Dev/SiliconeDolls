@@ -67,7 +67,7 @@ public class ModelCommand {
         String textureId = StringArgumentType.getString(context, "texture_id");
         server.getCommands().performPrefixedCommand(
             context.getSource().withPermission(2),
-            "ysm model set %s %s %s".formatted(player.getGameProfile().getName(), modelId, textureId)
+            "ysm model set %s \"%s\" \"%s\"".formatted(player.getGameProfile().getName(), modelId, textureId)
         );
         return 1;
     }
