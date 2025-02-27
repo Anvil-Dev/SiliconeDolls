@@ -129,6 +129,7 @@ public class SiliconeDolls implements RGAdditional {
     @SubscribeEvent
     public void onPlayerInteract(PlayerInteractEvent.@NotNull EntityInteract event) {
         Player player = event.getEntity();
+        if (SiliconeDolls.isLoaded("carryon") && player.isShiftKeyDown() && event.getItemStack().isEmpty()) return;
         Entity entity = event.getTarget();
         //noinspection resource
         if (player.level().isClientSide()) {
