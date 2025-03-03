@@ -2,8 +2,8 @@ package dev.anvilcraft.rg.sd.mixin;
 
 import com.mojang.authlib.GameProfile;
 import dev.anvilcraft.rg.sd.entity.PlayerActionPack;
-import dev.anvilcraft.rg.sd.util.PlayerEnderChestContainer;
-import dev.anvilcraft.rg.sd.util.PlayerInventoryContainer;
+import dev.anvilcraft.rg.sd.tool.PlayerEnderChestContainer;
+import dev.anvilcraft.rg.sd.tool.PlayerInventoryContainer;
 import dev.anvilcraft.rg.sd.util.IServerPlayerInjector;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ClientInformation;

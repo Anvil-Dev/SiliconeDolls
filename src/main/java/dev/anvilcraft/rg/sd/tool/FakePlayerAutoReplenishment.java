@@ -1,4 +1,4 @@
-package dev.anvilcraft.rg.sd.util;
+package dev.anvilcraft.rg.sd.tool;
 
 import dev.anvilcraft.rg.sd.SiliconeDollsServerRules;
 import net.minecraft.core.NonNullList;

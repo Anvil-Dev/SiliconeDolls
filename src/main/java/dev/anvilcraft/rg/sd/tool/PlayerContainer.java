@@ -1,7 +1,10 @@
-package dev.anvilcraft.rg.sd.util;
+package dev.anvilcraft.rg.sd.tool;
 
 import dev.anvilcraft.rg.api.server.TranslationUtil;
 import dev.anvilcraft.rg.sd.SiliconeDollsServerRules;
+import dev.anvilcraft.rg.sd.tool.client.PlayerInventoryMenu;
+import dev.anvilcraft.rg.sd.util.IServerPlayerInjector;
+import dev.anvilcraft.rg.sd.util.RuleUtils;
 import dev.anvilcraft.rg.tools.chest.menu.CustomChestMenu;
 import net.minecraft.core.NonNullList;
 import net.minecraft.server.level.ServerPlayer;
@@ -111,7 +114,7 @@ public abstract class PlayerContainer extends CustomChestMenu {
         } else if (SiliconeDollsServerRules.openFakePlayerInventory) {
             // 打开物品栏
             provider = new SimpleMenuProvider(
-                (i, inventory, p) -> new FakePlayerInventoryMenu(
+                (i, inventory, p) -> new PlayerInventoryMenu(
                     i, inventory,
                     ((IServerPlayerInjector) otherPlayer).getInventoryContainer()
                 ),

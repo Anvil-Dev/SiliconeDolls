@@ -1,4 +1,4 @@
-package dev.anvilcraft.rg.sd.util;
+package dev.anvilcraft.rg.sd.tool;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -10,6 +10,7 @@ import dev.anvilcraft.rg.sd.entity.FakePlayer;
 import dev.anvilcraft.rg.sd.entity.PlayerActionPack;
 import dev.anvilcraft.rg.sd.mixin.EntityInvoker;
 import dev.anvilcraft.rg.sd.mixin.PlayerAccessor;
+import dev.anvilcraft.rg.sd.util.IServerPlayerInjector;
 import net.minecraft.core.UUIDUtil;
 import net.minecraft.network.protocol.PacketFlow;
 import net.minecraft.network.protocol.game.ClientboundRotateHeadPacket;

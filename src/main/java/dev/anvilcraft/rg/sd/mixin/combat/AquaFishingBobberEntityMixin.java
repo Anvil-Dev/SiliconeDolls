@@ -3,7 +3,7 @@ package dev.anvilcraft.rg.sd.mixin.combat;
 import com.teammetallurgy.aquaculture.entity.AquaFishingBobberEntity;
 import dev.anvilcraft.rg.sd.SiliconeDollsServerRules;
 import dev.anvilcraft.rg.sd.entity.FakePlayer;
-import dev.anvilcraft.rg.sd.util.FakePlayerAutoFish;
+import dev.anvilcraft.rg.sd.tool.FakePlayerAutoFish;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.projectile.FishingHook;

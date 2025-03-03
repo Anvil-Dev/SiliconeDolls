@@ -2,8 +2,8 @@ package dev.anvilcraft.rg.sd.mixin;
 
 import dev.anvilcraft.rg.sd.SiliconeDollsServerRules;
 import dev.anvilcraft.rg.sd.entity.FakePlayer;
-import dev.anvilcraft.rg.sd.util.FakePlayerAutoReplaceTool;
-import dev.anvilcraft.rg.sd.util.FakePlayerAutoReplenishment;
+import dev.anvilcraft.rg.sd.tool.FakePlayerAutoReplaceTool;
+import dev.anvilcraft.rg.sd.tool.FakePlayerAutoReplenishment;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.EquipmentSlot;

@@ -1,7 +1,7 @@
-package dev.anvilcraft.rg.sd.mixin;
+package dev.anvilcraft.rg.sd.mixin.client;
 
 import com.mojang.datafixers.util.Pair;
-import dev.anvilcraft.rg.sd.util.SlotIcon;
+import dev.anvilcraft.rg.sd.util.ISlotIconInjector;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.world.inventory.Slot;
@@ -12,7 +12,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(Slot.class)
-abstract class SlotMixin implements SlotIcon {
+abstract class SlotMixin implements ISlotIconInjector {
     @Unique
     private Pair<ResourceLocation, ResourceLocation> siliconeDolls$pair;
 

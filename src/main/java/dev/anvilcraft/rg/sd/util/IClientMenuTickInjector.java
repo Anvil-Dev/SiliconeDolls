@@ -1,5 +1,5 @@
 package dev.anvilcraft.rg.sd.util;
 
-public interface ClientMenuTick {
+public interface IClientMenuTickInjector {
     void siliconeDolls$tick();
 }

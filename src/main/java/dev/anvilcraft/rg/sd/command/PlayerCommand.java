@@ -15,6 +15,7 @@ import com.mojang.brigadier.suggestion.SuggestionsBuilder;
 import dev.anvilcraft.rg.api.server.TranslationUtil;
 import dev.anvilcraft.rg.sd.SiliconeDolls;
 import dev.anvilcraft.rg.sd.SiliconeDollsServerRules;
+import dev.anvilcraft.rg.sd.combat.CombatManager;
 import dev.anvilcraft.rg.sd.entity.FakePlayer;
 import dev.anvilcraft.rg.sd.entity.PlayerActionPack;
 import dev.anvilcraft.rg.sd.init.ModCommands;
@@ -184,7 +185,7 @@ public class PlayerCommand {
                 Commands.literal("stop")
                     .executes(PlayerCommand::stopActions)
             );
-        LiteralArgumentBuilder<CommandSourceStack> ysm = SiliconeDolls.loadYSMCombat(dispatcher);
+        LiteralArgumentBuilder<CommandSourceStack> ysm = CombatManager.loadYSMCombat(dispatcher);
         SiliconeDolls.LOGGER.info("yes_steve_model: {}", ysm);
         if (ysm != null) player.then(ysm);
         LiteralArgumentBuilder<CommandSourceStack> builder = Commands.literal("player")
