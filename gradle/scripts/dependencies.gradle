@@ -1,4 +1,5 @@
 dependencies {
     // Rolling Gate
     implementation "dev.anvilcraft.rg:RollingGate:${rolling_gate_version}"
+    implementation "com.teammetallurgy.aquaculture:aquaculture2_${minecraft_version}:${minecraft_version}-${aquaculture_version}"
 }

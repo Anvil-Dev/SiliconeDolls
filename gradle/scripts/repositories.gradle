@@ -58,4 +58,10 @@ repositories {
         name = "Cjsah Maven"
         url = "https://server.cjsah.net:1002/maven/"
     }
+    maven { // Aquaculture
+        url "https://girafi.dk/maven/"
+        content {
+            includeGroup "com.teammetallurgy.aquaculture"
+        }
+    }
 }

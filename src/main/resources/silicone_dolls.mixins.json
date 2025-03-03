@@ -17,6 +17,7 @@
     "ServerConfigurationPacketListenerImplMixin",
     "ServerPlayerMixin",
     "SlotMixin",
+    "combat.AquaFishingBobberEntityMixin",
     "combat.PacketDistributorMixin",
     "combat.ServerCommonPacketListenerImplMixin"
   ],
