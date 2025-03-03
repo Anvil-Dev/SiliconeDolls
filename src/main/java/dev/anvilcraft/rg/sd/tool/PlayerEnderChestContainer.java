@@ -20,16 +20,37 @@ public class PlayerEnderChestContainer extends PlayerContainer {
     private final NonNullList<ItemStack> buttons = NonNullList.withSize(27, ItemStack.EMPTY);
     private final List<NonNullList<ItemStack>> compartments;
     private final @NotNull PlayerActionPack ap;
-    private final Button sneakButton = new Button(false, "silicone_dolls.button.action.sneak");
-    private final Button jumpButton = new Button(false, "silicone_dolls.button.action.jump_continuous");
-    private final AutoResetButton quitButton = new AutoResetButton("silicone_dolls.button.action.quit");
+    private final Button sneakButton;
+    private final Button jumpButton;
+    @SuppressWarnings("FieldCanBeLocal")
+    private final Button quitButton;
 
     public PlayerEnderChestContainer(Player player) {
         super(player);
         this.items = this.player.getEnderChestInventory().getItems();
         this.compartments = ImmutableList.of(this.items, this.buttons);
         this.ap = ((IServerPlayerInjector) this.player).getActionPack();
-        this.createButton();
+        this.sneakButton = new Button(false, "silicone_dolls.button.action.sneak")
+            .addTurnOnFunction(() -> this.ap.setSneaking(true))
+            .addTurnOffFunction(() -> this.ap.setSneaking(false));
+        this.jumpButton = new Button(false, "silicone_dolls.button.action.jump_continuous")
+            .addTurnOnFunction(() -> this.ap.start(PlayerActionPack.ActionType.JUMP, PlayerActionPack.Action.continuous()))
+            .addTurnOffFunction(() -> this.ap.start(PlayerActionPack.ActionType.JUMP, PlayerActionPack.Action.once()));
+        this.quitButton = new AutoResetButton("silicone_dolls.button.action.quit")
+            .addTurnOnFunction(() -> {
+                if (this.player instanceof FakePlayer fake) fake.kill();
+            });
+        this.addButton(0, this.sneakButton);
+        this.addButton(1, this.jumpButton);
+        this.addButton(26, this.quitButton);
+        List<Integer> slots = new ArrayList<>();
+        for (Map.Entry<Integer, Button> button : super.buttons) {
+            slots.add(button.getKey());
+        }
+        for (int i = 0; i < 27; i++) {
+            if (slots.contains(i)) continue;
+            this.addButton(i, AutoResetButton.NONE);
+        }
     }
 
     @Override
@@ -60,27 +81,6 @@ public class PlayerEnderChestContainer extends PlayerContainer {
     public void clearContent() {
         for (List<ItemStack> list : this.compartments) {
             list.clear();
-        }
-    }
-
-    private void createButton() {
-        List<Integer> slots = new ArrayList<>();
-        this.sneakButton.addTurnOnFunction(() -> this.ap.setSneaking(true));
-        this.sneakButton.addTurnOffFunction(() -> this.ap.setSneaking(false));
-        this.addButton(0, this.sneakButton);
-        this.jumpButton.addTurnOnFunction(() -> this.ap.start(PlayerActionPack.ActionType.JUMP, PlayerActionPack.Action.continuous()));
-        this.jumpButton.addTurnOffFunction(() -> this.ap.start(PlayerActionPack.ActionType.JUMP, PlayerActionPack.Action.once()));
-        this.addButton(1, this.jumpButton);
-        this.quitButton.addTurnOnFunction(() -> {
-            if (this.player instanceof FakePlayer fake) fake.kill();
-        });
-        this.addButton(26, this.quitButton);
-        for (Map.Entry<Integer, Button> button : super.buttons) {
-            slots.add(button.getKey());
-        }
-        for (int i = 0; i < 27; i++) {
-            if (slots.contains(i)) continue;
-            this.addButton(i, AutoResetButton.NONE);
         }
     }
 

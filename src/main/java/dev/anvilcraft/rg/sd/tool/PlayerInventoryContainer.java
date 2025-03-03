@@ -28,10 +28,11 @@ public class PlayerInventoryContainer extends PlayerContainer {
     private final List<NonNullList<ItemStack>> compartments;
     private final PlayerActionPack ap;
     private final RadioList hotbar;
-    private final Button stopAll = new AutoResetButton("silicone_dolls.button.action.stop_all");
-    private final Button attackInterval12 = new Button(false, "silicone_dolls.button.action.attack_interval_12");
-    private final Button attackContinuous = new Button(false, "silicone_dolls.button.action.attack_continuous");
-    private final Button useContinuous = new Button(false, "silicone_dolls.button.action.use_continuous");
+    @SuppressWarnings("FieldCanBeLocal")
+    private final Button stopAll;
+    private final Button attackInterval12;
+    private final Button attackContinuous;
+    private final Button useContinuous;
 
     public PlayerInventoryContainer(Player player) {
         super(player);
@@ -41,7 +42,21 @@ public class PlayerInventoryContainer extends PlayerContainer {
         this.ap = ((IServerPlayerInjector) this.player).getActionPack();
         this.compartments = ImmutableList.of(this.items, this.armor, this.offhand, this.buttons);
         this.hotbar = PlayerInventoryContainer.createHotbarButton(this::addButton, this.ap);
-        this.createButton();
+        this.stopAll = new AutoResetButton("silicone_dolls.button.action.stop_all")
+            .addTurnOnFunction(this.ap::stopAll);
+        this.attackInterval12 = new Button(false, "silicone_dolls.button.action.attack_interval_12")
+            .addTurnOnFunction(() -> this.ap.start(PlayerActionPack.ActionType.ATTACK, PlayerActionPack.Action.interval(12)))
+            .addTurnOffFunction(() -> this.ap.start(PlayerActionPack.ActionType.ATTACK, PlayerActionPack.Action.once()));
+        this.attackContinuous = new Button(false, "silicone_dolls.button.action.attack_continuous")
+            .addTurnOnFunction(() -> this.ap.start(PlayerActionPack.ActionType.ATTACK, PlayerActionPack.Action.continuous()))
+            .addTurnOffFunction(() -> this.ap.start(PlayerActionPack.ActionType.ATTACK, PlayerActionPack.Action.once()));
+        this.useContinuous = new Button(false, "silicone_dolls.button.action.use_continuous")
+            .addTurnOnFunction(() -> this.ap.start(PlayerActionPack.ActionType.USE, PlayerActionPack.Action.continuous()))
+            .addTurnOffFunction(() -> this.ap.start(PlayerActionPack.ActionType.USE, PlayerActionPack.Action.once()));
+        this.addButton(0, this.stopAll);
+        this.addButton(5, this.attackInterval12);
+        this.addButton(6, this.attackContinuous);
+        this.addButton(8, this.useContinuous);
     }
 
     @Override
@@ -111,30 +126,6 @@ public class PlayerInventoryContainer extends PlayerContainer {
             hotBarList.add(button);
         }
         return new RadioList(hotBarList, true);
-    }
-
-    private void createButton() {
-        this.stopAll.addTurnOnFunction(this.ap::stopAll);
-
-        this.attackInterval12.addTurnOnFunction(() -> {
-            this.ap.start(PlayerActionPack.ActionType.ATTACK, PlayerActionPack.Action.interval(12));
-            this.attackContinuous.turnOffWithoutFunction();
-        });
-        this.attackInterval12.addTurnOffFunction(() -> this.ap.start(PlayerActionPack.ActionType.ATTACK, PlayerActionPack.Action.once()));
-
-        this.attackContinuous.addTurnOnFunction(() -> {
-            this.ap.start(PlayerActionPack.ActionType.ATTACK, PlayerActionPack.Action.continuous());
-            this.attackInterval12.turnOffWithoutFunction();
-        });
-        this.attackContinuous.addTurnOffFunction(() -> this.ap.start(PlayerActionPack.ActionType.ATTACK, PlayerActionPack.Action.once()));
-
-        this.useContinuous.addTurnOnFunction(() -> this.ap.start(PlayerActionPack.ActionType.USE, PlayerActionPack.Action.continuous()));
-        this.useContinuous.addTurnOffFunction(() -> this.ap.start(PlayerActionPack.ActionType.USE, PlayerActionPack.Action.once()));
-
-        this.addButton(0, this.stopAll);
-        this.addButton(5, this.attackInterval12);
-        this.addButton(6, this.attackContinuous);
-        this.addButton(8, this.useContinuous);
     }
 
     @Override
