@@ -68,6 +68,7 @@ public class PlayerCommand {
                                                                     .executes(PlayerCommand::spawnPlayer)
                                                                     .then(
                                                                         Commands.literal("in")
+                                                                            .requires(source -> source.hasPermission(Commands.LEVEL_GAMEMASTERS))
                                                                             .then(
                                                                                 Commands.argument("gamemode", GameModeArgument.gameMode())
                                                                                     .executes(PlayerCommand::spawnPlayer)
