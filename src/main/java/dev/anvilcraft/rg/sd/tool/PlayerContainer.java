@@ -2,7 +2,6 @@ package dev.anvilcraft.rg.sd.tool;
 
 import dev.anvilcraft.rg.api.server.TranslationUtil;
 import dev.anvilcraft.rg.sd.SiliconeDollsServerRules;
-import dev.anvilcraft.rg.sd.tool.client.PlayerInventoryMenu;
 import dev.anvilcraft.rg.sd.util.IServerPlayerInjector;
 import dev.anvilcraft.rg.sd.util.RuleUtils;
 import dev.anvilcraft.rg.tools.chest.menu.CustomChestMenu;

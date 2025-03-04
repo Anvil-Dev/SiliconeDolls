@@ -1,6 +1,6 @@
-package dev.anvilcraft.rg.sd.tool.client;
+package dev.anvilcraft.rg.sd.tool;
 
-import dev.anvilcraft.rg.sd.mixin.client.AbstractContainerMenuAccessor;
+import dev.anvilcraft.rg.sd.mixin.AbstractContainerMenuAccessor;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.player.Inventory;

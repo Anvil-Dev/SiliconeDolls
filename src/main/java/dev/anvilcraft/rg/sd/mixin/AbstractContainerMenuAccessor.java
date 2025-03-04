@@ -1,4 +1,4 @@
-package dev.anvilcraft.rg.sd.mixin.client;
+package dev.anvilcraft.rg.sd.mixin;
 
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;

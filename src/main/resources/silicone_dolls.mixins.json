@@ -14,14 +14,14 @@
     "PlayerMixin",
     "ServerConfigurationPacketListenerImplMixin",
     "ServerPlayerMixin",
+    "AbstractContainerMenuAccessor",
+    "ChestMenuMixin",
+    "SlotMixin",
     "combat.AquaFishingBobberEntityMixin",
     "combat.PacketDistributorMixin",
     "combat.ServerCommonPacketListenerImplMixin"
   ],
   "client": [
-    "client.AbstractContainerMenuAccessor",
-    "client.ChestMenuMixin",
-    "client.SlotMixin"
   ],
   "injectors": {
     "defaultRequire": 1

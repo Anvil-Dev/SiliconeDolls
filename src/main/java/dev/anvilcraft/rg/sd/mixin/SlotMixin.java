@@ -1,4 +1,4 @@
-package dev.anvilcraft.rg.sd.mixin.client;
+package dev.anvilcraft.rg.sd.mixin;
 
 import com.mojang.datafixers.util.Pair;
 import dev.anvilcraft.rg.sd.util.ISlotIconInjector;

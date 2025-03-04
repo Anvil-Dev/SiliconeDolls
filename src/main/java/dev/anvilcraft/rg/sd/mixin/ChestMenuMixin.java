@@ -1,7 +1,7 @@
-package dev.anvilcraft.rg.sd.mixin.client;
+package dev.anvilcraft.rg.sd.mixin;
 
 import dev.anvilcraft.rg.sd.util.IClientMenuTickInjector;
-import dev.anvilcraft.rg.sd.tool.client.PlayerInventoryMenu;
+import dev.anvilcraft.rg.sd.tool.PlayerInventoryMenu;
 import dev.anvilcraft.rg.sd.util.ISlotIconInjector;
 import dev.anvilcraft.rg.tools.chest.menu.control.Button;
 import net.minecraft.core.component.DataComponents;
