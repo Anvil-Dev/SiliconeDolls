@@ -185,6 +185,17 @@ public class FakePlayer extends ServerPlayer {
     @Override
     public void die(@NotNull DamageSource cause) {
         shakeOff();
+        // 清除经验值
+        this.setExperiencePoints(0);
+        this.setExperienceLevels(0);
+        // 清除速度
+        this.setDeltaMovement(Vec3.ZERO);
+        // 清除着火时间
+        this.setRemainingFireTicks(0);
+        // 清除摔落高度
+        this.fallDistance = 0;
+        // 清除药水效果
+        this.removeAllEffects();
         super.die(cause);
         setHealth(20);
         this.foodData = new FoodData();
