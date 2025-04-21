@@ -277,15 +277,12 @@ public class PlayerCommand {
                 return null;
             }
         });
-        if (gameMode == null) {
-            ServerPlayer player = source.getPlayer();
-            if (player == null) {
-                gameMode = GameType.CREATIVE;
-            } else {
-                gameMode = player.gameMode.getGameModeForPlayer();
-            }
-        }
-        return FakePlayer.createFake(server, name, pos, facing, level, gameMode) ? 1 : 0;
+        ServerPlayer player = source.getPlayer();
+        if (gameMode == null)
+            gameMode = player == null ? GameType.CREATIVE : player.gameMode.getGameModeForPlayer();
+        boolean flying = false;
+        if (player != null) flying = player.getAbilities().flying;
+        return FakePlayer.createFake(server, name, pos, facing, level, gameMode, flying) ? 1 : 0;
     }
 
     public static int shadowPlayer(@NotNull CommandContext<CommandSourceStack> context) {
