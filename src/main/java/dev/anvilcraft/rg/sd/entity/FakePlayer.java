@@ -49,8 +49,8 @@ public class FakePlayer extends ServerPlayer {
         this.shadow = shadow;
     }
 
-    public static boolean createFake(@NotNull MinecraftServer server, @NotNull String username, @NotNull Vec3 pos, @NotNull Vec2 facing, @NotNull ServerLevel level, @NotNull GameType gameMode) {
-        return FakePlayer.createFake(server, username, pos, facing, level, gameMode, (player) -> {
+    public static boolean createFake(@NotNull MinecraftServer server, @NotNull String username, @NotNull Vec3 pos, @NotNull Vec2 facing, @NotNull ServerLevel level, @NotNull GameType gameMode, boolean flying) {
+        return FakePlayer.createFake(server, username, pos, facing, level, gameMode, flying, (player) -> {
         });
     }
 
@@ -61,6 +61,7 @@ public class FakePlayer extends ServerPlayer {
         @NotNull Vec2 facing,
         @NotNull ServerLevel level,
         @NotNull GameType gamemode,
+        boolean flying,
         @NotNull Consumer<FakePlayer> callback
     ) {
         GameProfileCache.setUsesAuthentication(false);
@@ -100,6 +101,7 @@ public class FakePlayer extends ServerPlayer {
             server.getPlayerList().broadcastAll(new ClientboundTeleportEntityPacket(instance), level.dimension());
             instance.entityData.set(DATA_PLAYER_MODE_CUSTOMISATION, (byte) 0x7f);
             callback.accept(instance);
+            instance.getAbilities().flying = flying && instance.getAbilities().mayfly;
         }, server);
         return true;
     }
