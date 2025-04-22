@@ -1,5 +1,7 @@
 package dev.anvilcraft.rg.sd.command;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import com.google.gson.annotations.SerializedName;
 import com.mojang.authlib.GameProfile;
@@ -19,6 +21,7 @@ import dev.anvilcraft.rg.sd.entity.PlayerActionPack;
 import dev.anvilcraft.rg.sd.init.ModCommands;
 import dev.anvilcraft.rg.sd.mixin.EntityInvoker;
 import dev.anvilcraft.rg.sd.mixin.PlayerAccessor;
+import dev.anvilcraft.rg.sd.util.DimTypeSerializer;
 import dev.anvilcraft.rg.sd.util.IServerPlayerInjector;
 import dev.anvilcraft.rg.tools.FilesUtil;
 import net.minecraft.ChatFormatting;
@@ -35,6 +38,7 @@ import net.minecraft.network.protocol.PacketFlow;
 import net.minecraft.network.protocol.game.ClientboundRotateHeadPacket;
 import net.minecraft.network.protocol.game.ClientboundTeleportEntityPacket;
 import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ClientInformation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -56,8 +60,18 @@ import java.util.function.Consumer;
 
 @SuppressWarnings({"SameParameterValue", "unused"})
 public class BotCommand {
+    public static final Gson GSON = new GsonBuilder()
+        .setPrettyPrinting()
+        .registerTypeHierarchyAdapter(ResourceKey.class, new DimTypeSerializer())
+        .registerTypeHierarchyAdapter(ResourceLocation.class, new ResourceLocation.Serializer())
+        .create();
     public static final FilesUtil.MapFile<String, BotInfo> BOT_INFO = new FilesUtil.MapFile<>("bot", Object::toString, BotInfo.class);
     public static final FilesUtil.MapFile<String, BotGroupInfo> BOT_GROUP_INFO = new FilesUtil.MapFile<>("botGroup", Object::toString, BotGroupInfo.class);
+
+    static {
+        BOT_INFO.setGson(GSON);
+        BOT_GROUP_INFO.setGson(GSON);
+    }
 
     public static void register(@NotNull CommandDispatcher<CommandSourceStack> dispatcher) {
         dispatcher.register(
