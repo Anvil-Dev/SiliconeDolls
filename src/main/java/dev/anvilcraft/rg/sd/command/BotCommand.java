@@ -1,8 +1,5 @@
 package dev.anvilcraft.rg.sd.command;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonObject;
 import com.google.gson.annotations.SerializedName;
 import com.mojang.authlib.GameProfile;
 import com.mojang.brigadier.CommandDispatcher;
@@ -21,7 +18,6 @@ import dev.anvilcraft.rg.sd.entity.PlayerActionPack;
 import dev.anvilcraft.rg.sd.init.ModCommands;
 import dev.anvilcraft.rg.sd.mixin.EntityInvoker;
 import dev.anvilcraft.rg.sd.mixin.PlayerAccessor;
-import dev.anvilcraft.rg.sd.util.DimTypeSerializer;
 import dev.anvilcraft.rg.sd.util.IServerPlayerInjector;
 import dev.anvilcraft.rg.tools.FilesUtil;
 import net.minecraft.ChatFormatting;
@@ -38,7 +34,6 @@ import net.minecraft.network.protocol.PacketFlow;
 import net.minecraft.network.protocol.game.ClientboundRotateHeadPacket;
 import net.minecraft.network.protocol.game.ClientboundTeleportEntityPacket;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ClientInformation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -60,17 +55,20 @@ import java.util.function.Consumer;
 
 @SuppressWarnings({"SameParameterValue", "unused"})
 public class BotCommand {
-    public static final Gson GSON = new GsonBuilder()
-        .setPrettyPrinting()
-        .registerTypeHierarchyAdapter(ResourceKey.class, new DimTypeSerializer())
-        .registerTypeHierarchyAdapter(ResourceLocation.class, new ResourceLocation.Serializer())
-        .create();
     public static final FilesUtil.MapFile<String, BotInfo> BOT_INFO = new FilesUtil.MapFile<>("bot", Object::toString, BotInfo.class);
     public static final FilesUtil.MapFile<String, BotGroupInfo> BOT_GROUP_INFO = new FilesUtil.MapFile<>("botGroup", Object::toString, BotGroupInfo.class);
 
     static {
-        BOT_INFO.setGson(GSON);
-        BOT_GROUP_INFO.setGson(GSON);
+        BOT_INFO.setGson(
+            builder -> builder
+                .registerTypeHierarchyAdapter(PlayerActionPack.class, new PlayerActionPack.Serializer())
+                .registerTypeHierarchyAdapter(PlayerActionPack.Action.class, new PlayerActionPack.Action.Serializer())
+        );
+        BOT_GROUP_INFO.setGson(
+            builder -> builder
+                .registerTypeHierarchyAdapter(PlayerActionPack.class, new PlayerActionPack.Serializer())
+                .registerTypeHierarchyAdapter(PlayerActionPack.Action.class, new PlayerActionPack.Action.Serializer())
+        );
     }
 
     public static void register(@NotNull CommandDispatcher<CommandSourceStack> dispatcher) {
@@ -330,7 +328,7 @@ public class BotCommand {
                     BOT_INFO.server.getPlayerList().broadcastAll(new ClientboundTeleportEntityPacket(instance), botInfo.dimType);
                     instance.getEntityData().set(PlayerAccessor.getCustomisationData(), (byte) 127);
                     instance.getAbilities().flying = botInfo.flying;
-                    PlayerActionPack actionPack = SiliconeDolls.GSON.fromJson(botInfo.actions, PlayerActionPack.class);
+                    PlayerActionPack actionPack = botInfo.actions;
                     ((IServerPlayerInjector) instance).getActionPack().copyFrom(actionPack);
                 }, BOT_INFO.server);
                 success = true;
@@ -376,7 +374,7 @@ public class BotCommand {
                 player.level().dimension(),
                 player.gameMode.getGameModeForPlayer(),
                 player.getAbilities().flying,
-                SiliconeDolls.GSON.toJsonTree(((IServerPlayerInjector) player).getActionPack()).getAsJsonObject()
+                ((IServerPlayerInjector) player).getActionPack()
             )
         );
         BOT_INFO.save();
@@ -657,7 +655,7 @@ public class BotCommand {
         @SerializedName("dim_type") ResourceKey<Level> dimType,
         GameType mode,
         boolean flying,
-        JsonObject actions
+        PlayerActionPack actions
     ) {
     }
 
