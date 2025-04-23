@@ -7,7 +7,7 @@ import dev.anvilcraft.rg.api.RGAdditional;
 import dev.anvilcraft.rg.api.server.ServerRGRuleManager;
 import dev.anvilcraft.rg.api.server.TranslationUtil;
 import dev.anvilcraft.rg.sd.entity.PlayerActionPack;
-import dev.anvilcraft.rg.tools.serializer.DimTypeSerializer;
+import dev.anvilcraft.rg.sd.util.DimTypeSerializer;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.neoforged.bus.api.IEventBus;
