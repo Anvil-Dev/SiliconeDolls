@@ -2,9 +2,11 @@ package dev.anvilcraft.rg.sd;
 
 import dev.anvilcraft.rg.api.RGValidator;
 import dev.anvilcraft.rg.api.Rule;
+import dev.anvilcraft.rg.api.server.RGServerRules;
 
 import java.util.Set;
 
+@RGServerRules(value = "silicone_dolls", languages = {"zh_cn", "en_us"})
 public class SiliconeDollsServerRules {
     @Rule(
         allowed = {"ops", "true", "false", "1", "2", "3", "4"},
