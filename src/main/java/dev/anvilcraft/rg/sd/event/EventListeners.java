@@ -4,7 +4,6 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import dev.anvilcraft.rg.api.RGValidator;
 import dev.anvilcraft.rg.api.event.ServerAboutToStopEvent;
-import dev.anvilcraft.rg.api.event.ServerLoadedLevelEvent;
 import dev.anvilcraft.rg.sd.SiliconeDolls;
 import dev.anvilcraft.rg.sd.SiliconeDollsServerRules;
 import dev.anvilcraft.rg.sd.combat.CombatManager;
@@ -29,6 +28,7 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.RegisterCommandsEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
+import net.neoforged.neoforge.event.server.ServerStartedEvent;
 import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 import org.jetbrains.annotations.NotNull;
 
@@ -117,7 +117,7 @@ public class EventListeners {
     }
 
     @SubscribeEvent
-    public static void onServerLoadedWorlds(@NotNull ServerLoadedLevelEvent event) {
+    public static void onServerStartedEvent(@NotNull ServerStartedEvent event) {
         MinecraftServer server = event.getServer();
         if (SiliconeDollsServerRules.fakePlayerResident) {
             File file = server.getWorldPath(LevelResource.ROOT).resolve("fake_player.rg.json").toFile();
