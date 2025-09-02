@@ -4,6 +4,7 @@ import com.google.common.collect.ImmutableList;
 import dev.anvilcraft.rg.api.server.TranslationUtil;
 import dev.anvilcraft.rg.sd.entity.PlayerActionPack;
 import dev.anvilcraft.rg.sd.util.IServerPlayerInjector;
+import dev.anvilcraft.rg.sd.util.InventoryUtil;
 import dev.anvilcraft.rg.tools.chest.menu.control.AutoResetButton;
 import dev.anvilcraft.rg.tools.chest.menu.control.Button;
 import dev.anvilcraft.rg.tools.chest.menu.control.RadioList;
@@ -11,13 +12,11 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.core.NonNullList;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
-import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.function.BiConsumer;
@@ -38,35 +37,9 @@ public class PlayerInventoryContainer extends PlayerContainer {
 
     public PlayerInventoryContainer(Player player) {
         super(player);
-        this.items = this.player.getInventory().getNonEquipmentItems();
-        this.armor = new NonNullList<>(
-            Arrays.asList(
-                this.player.getItemBySlot(EquipmentSlot.HEAD),
-                this.player.getItemBySlot(EquipmentSlot.BODY),
-                this.player.getItemBySlot(EquipmentSlot.LEGS),
-                this.player.getItemBySlot(EquipmentSlot.FEET)
-            ), ItemStack.EMPTY
-        ) {
-            @Override
-            public @NotNull ItemStack set(int index, @NotNull ItemStack value) {
-                EquipmentSlot slot = switch (index) {
-                    case 0 -> EquipmentSlot.HEAD;
-                    case 1 -> EquipmentSlot.CHEST;
-                    case 2 -> EquipmentSlot.LEGS;
-                    default -> EquipmentSlot.FEET;
-                };
-                PlayerInventoryContainer.this.player.setItemSlot(slot, value);
-                return super.set(index, value);
-            }
-        };
-        //noinspection ArraysAsListWithZeroOrOneArgument
-        this.offhand = new NonNullList<>(Arrays.asList(this.player.getOffhandItem()), ItemStack.EMPTY) {
-            @Override
-            public @NotNull ItemStack set(int index, @NotNull ItemStack value) {
-                PlayerInventoryContainer.this.player.setItemSlot(EquipmentSlot.OFFHAND, value);
-                return super.set(index, value);
-            }
-        };
+        this.items = InventoryUtil.getItems(player);
+        this.armor = InventoryUtil.getArmor(player);
+        this.offhand = InventoryUtil.getOffHand(player);
         this.ap = ((IServerPlayerInjector) this.player).getActionPack();
         this.compartments = ImmutableList.of(this.items, this.armor, this.offhand, this.buttons);
         this.hotbar = PlayerInventoryContainer.createHotbarButton(this::addButton, this.ap);
@@ -163,7 +136,7 @@ public class PlayerInventoryContainer extends PlayerContainer {
         super.tick();
         List<Button> buttonList = this.hotbar.getButtons();
         for (int i = 0; i < buttonList.size(); i++) {
-            if (i == this.player.getInventory().getSelectedSlot()) {
+            if (i == InventoryUtil.getSelected(this.player)) {
                 buttonList.get(i).turnOnWithoutFunction();
             } else {
                 buttonList.get(i).turnOffWithoutFunction();
