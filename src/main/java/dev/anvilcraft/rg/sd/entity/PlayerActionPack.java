@@ -14,7 +14,7 @@ import lombok.Getter;
 import net.minecraft.commands.arguments.EntityAnchorArgument;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.network.protocol.game.ClientboundSetCarriedItemPacket;
+import net.minecraft.network.protocol.game.ClientboundSetHeldSlotPacket;
 import net.minecraft.network.protocol.game.ServerboundPlayerActionPacket;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -44,7 +44,14 @@ import java.util.List;
 import java.util.Map;
 
 @Getter
-@SuppressWarnings({"unused", "UnusedReturnValue", "resource", "SameParameterValue"})
+@SuppressWarnings(
+    {
+        "unused",
+        "UnusedReturnValue",
+        "resource",
+        "SameParameterValue"
+    }
+)
 public class PlayerActionPack {
     private final ServerPlayer player;
     private final Map<ActionType, Action> actions = new EnumMap<>(ActionType.class);
@@ -91,16 +98,18 @@ public class PlayerActionPack {
     public PlayerActionPack setSneaking(boolean doSneak) {
         sneaking = doSneak;
         player.setShiftKeyDown(doSneak);
-        if (sprinting && sneaking)
+        if (sprinting && sneaking) {
             setSprinting(false);
+        }
         return this;
     }
 
     public PlayerActionPack setSprinting(boolean doSprint) {
         sprinting = doSprint;
         player.setSprinting(doSprint);
-        if (sneaking && sprinting)
+        if (sneaking && sprinting) {
             setSneaking(false);
+        }
         return this;
     }
 
@@ -168,8 +177,11 @@ public class PlayerActionPack {
         //test what happens
         List<Entity> entities;
         if (onlyRideables) {
-            entities = player.level().getEntities(player, player.getBoundingBox().inflate(3.0D, 1.0D, 3.0D),
-                e -> e instanceof Minecart || e instanceof Boat || e instanceof AbstractHorse);
+            entities = player.level().getEntities(
+                player,
+                player.getBoundingBox().inflate(3.0D, 1.0D, 3.0D),
+                e -> e instanceof Minecart || e instanceof Boat || e instanceof AbstractHorse
+            );
         } else {
             entities = player.level().getEntities(player, player.getBoundingBox().inflate(3.0D, 1.0D, 3.0D));
         }
@@ -178,8 +190,9 @@ public class PlayerActionPack {
         double distance = Double.POSITIVE_INFINITY;
         Entity currentVehicle = player.getVehicle();
         for (Entity e : entities) {
-            if (e == player || (currentVehicle == e))
+            if (e == player || (currentVehicle == e)) {
                 continue;
+            }
             double dd = player.distanceToSqr(e);
             if (dd < distance) {
                 distance = dd;
@@ -187,10 +200,11 @@ public class PlayerActionPack {
             }
         }
         if (closest == null) return this;
-        if (closest instanceof AbstractHorse && onlyRideables)
+        if (closest instanceof AbstractHorse && onlyRideables) {
             ((AbstractHorse) closest).mobInteract(player, InteractionHand.MAIN_HAND);
-        else
+        } else {
             player.startRiding(closest, true);
+        }
         return this;
     }
 
@@ -208,13 +222,15 @@ public class PlayerActionPack {
             // skipping attack if use was successful
             if (!(actionAttempts.getOrDefault(ActionType.USE, false) && type == ActionType.ATTACK)) {
                 Boolean actionStatus = action.tick(this, type);
-                if (actionStatus != null)
+                if (actionStatus != null) {
                     actionAttempts.put(type, actionStatus);
+                }
             }
             // optionally retrying use after successful attack and unsuccessful use
-            if (type == ActionType.ATTACK
-                && actionAttempts.getOrDefault(ActionType.ATTACK, false)
-                && !actionAttempts.getOrDefault(ActionType.USE, true)) {
+            if (type == ActionType.ATTACK && actionAttempts.getOrDefault(ActionType.ATTACK, false) && !actionAttempts.getOrDefault(
+                ActionType.USE,
+                true
+            )) {
                 // according to MinecraftClient.handleInputEvents
                 Action using = actions.get(ActionType.USE);
                 if (using != null) // this is always true - we know use worked, but just in case
@@ -240,34 +256,39 @@ public class PlayerActionPack {
 
     private void dropItemFromSlot(int slot, boolean dropAll) {
         Inventory inv = player.getInventory(); // getInventory;
-        if (!inv.getItem(slot).isEmpty())
-            player.drop(inv.removeItem(slot,
-                dropAll ? inv.getItem(slot).getCount() : 1
-            ), false, true); // scatter, keep owner
+        if (!inv.getItem(slot).isEmpty()) {
+            player.drop(inv.removeItem(slot, dropAll ? inv.getItem(slot).getCount() : 1), false, true); // scatter, keep owner
+        }
     }
 
     public void drop(int selectedSlot, boolean dropAll) {
         Inventory inv = player.getInventory(); // getInventory;
         if (selectedSlot == -2) // all
         {
-            for (int i = inv.getContainerSize(); i >= 0; i--)
+            for (int i = inv.getContainerSize(); i >= 0; i--) {
                 dropItemFromSlot(i, dropAll);
+            }
         } else // one slot
         {
-            if (selectedSlot == -1)
-                selectedSlot = inv.selected;
+            if (selectedSlot == -1) {
+                selectedSlot = inv.getSelectedSlot();
+            }
             dropItemFromSlot(selectedSlot, dropAll);
         }
     }
 
     public void setSlot(int slot) {
-        player.getInventory().selected = slot - 1;
-        player.connection.send(new ClientboundSetCarriedItemPacket(slot - 1));
+        player.getInventory().setSelectedSlot(slot - 1);
+        player.connection.send(new ClientboundSetHeldSlotPacket(slot - 1));
     }
 
     public static class Serializer implements JsonDeserializer<PlayerActionPack>, JsonSerializer<PlayerActionPack> {
         @Override
-        public PlayerActionPack deserialize(@NotNull JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
+        public PlayerActionPack deserialize(
+            @NotNull JsonElement json,
+            Type typeOfT,
+            JsonDeserializationContext context
+        ) throws JsonParseException {
             try {
                 JsonObject object = json.getAsJsonObject();
                 PlayerActionPack pack = new PlayerActionPack(null);
@@ -282,7 +303,11 @@ public class PlayerActionPack {
                 }
                 if (object.has("current_block")) {
                     JsonObject currentBlock = object.get("current_block").getAsJsonObject();
-                    pack.currentBlock = new BlockPos(currentBlock.get("x").getAsInt(), currentBlock.get("y").getAsInt(), currentBlock.get("z").getAsInt());
+                    pack.currentBlock = new BlockPos(
+                        currentBlock.get("x").getAsInt(),
+                        currentBlock.get("y").getAsInt(),
+                        currentBlock.get("z").getAsInt()
+                    );
                 }
                 if (object.has("block_hit_delay")) {
                     pack.blockHitDelay = object.get("block_hit_delay").getAsInt();
@@ -363,14 +388,20 @@ public class PlayerActionPack {
                     switch (hit.getType()) {
                         case BLOCK: {
                             player.resetLastActionTime();
-                            ServerLevel world = player.serverLevel();
+                            ServerLevel world = player.level();
                             BlockHitResult blockHit = (BlockHitResult) hit;
                             BlockPos pos = blockHit.getBlockPos();
                             Direction side = blockHit.getDirection();
-                            if (pos.getY() < player.level().getMaxBuildHeight() - (side == Direction.UP ? 1 : 0) && world.mayInteract(player, pos)) {
-                                InteractionResult result = player.gameMode.useItemOn(player, world, player.getItemInHand(hand), hand, blockHit);
-                                if (result.consumesAction()) {
-                                    if (result.shouldSwing()) player.swing(hand);
+                            if (pos.getY() < player.level().getMaxY() - (side == Direction.UP ? 1 : 0) && world.mayInteract(player, pos)) {
+                                InteractionResult result = player.gameMode.useItemOn(
+                                    player,
+                                    world,
+                                    player.getItemInHand(hand),
+                                    hand,
+                                    blockHit
+                                );
+                                if (result instanceof InteractionResult.Success success) {
+                                    if (success.swingSource() == InteractionResult.SwingSource.SERVER) player.swing(hand);
                                     ap.itemUseCooldown = 3;
                                     return true;
                                 }
@@ -411,8 +442,7 @@ public class PlayerActionPack {
                 ap.itemUseCooldown = 0;
                 player.releaseUsingItem();
             }
-        },
-        ATTACK {
+        }, ATTACK {
             @Override
             boolean execute(ServerPlayer player, Action action) {
                 HitResult hit = getTarget(player);
@@ -436,8 +466,9 @@ public class PlayerActionPack {
                         BlockHitResult blockHit = (BlockHitResult) hit;
                         BlockPos pos = blockHit.getBlockPos();
                         Direction side = blockHit.getDirection();
-                        if (player.blockActionRestricted(player.level(), pos, player.gameMode.getGameModeForPlayer()))
+                        if (player.blockActionRestricted(player.level(), pos, player.gameMode.getGameModeForPlayer())) {
                             return false;
+                        }
                         if (ap.currentBlock != null && player.level().getBlockState(ap.currentBlock).isAir()) {
                             ap.currentBlock = null;
                             return false;
@@ -445,14 +476,32 @@ public class PlayerActionPack {
                         BlockState state = player.level().getBlockState(pos);
                         boolean blockBroken = false;
                         if (player.gameMode.getGameModeForPlayer().isCreative()) {
-                            player.gameMode.handleBlockBreakAction(pos, ServerboundPlayerActionPacket.Action.START_DESTROY_BLOCK, side, player.level().getMaxBuildHeight(), -1);
+                            player.gameMode.handleBlockBreakAction(
+                                pos,
+                                ServerboundPlayerActionPacket.Action.START_DESTROY_BLOCK,
+                                side,
+                                player.level().getMaxY(),
+                                -1
+                            );
                             ap.blockHitDelay = 5;
                             blockBroken = true;
                         } else if (ap.currentBlock == null || !ap.currentBlock.equals(pos)) {
                             if (ap.currentBlock != null) {
-                                player.gameMode.handleBlockBreakAction(ap.currentBlock, ServerboundPlayerActionPacket.Action.ABORT_DESTROY_BLOCK, side, player.level().getMaxBuildHeight(), -1);
+                                player.gameMode.handleBlockBreakAction(
+                                    ap.currentBlock,
+                                    ServerboundPlayerActionPacket.Action.ABORT_DESTROY_BLOCK,
+                                    side,
+                                    player.level().getMaxY(),
+                                    -1
+                                );
                             }
-                            player.gameMode.handleBlockBreakAction(pos, ServerboundPlayerActionPacket.Action.START_DESTROY_BLOCK, side, player.level().getMaxBuildHeight(), -1);
+                            player.gameMode.handleBlockBreakAction(
+                                pos,
+                                ServerboundPlayerActionPacket.Action.START_DESTROY_BLOCK,
+                                side,
+                                player.level().getMaxY(),
+                                -1
+                            );
                             boolean notAir = !state.isAir();
                             if (notAir && ap.curBlockDamageMP == 0) {
                                 state.attack(player.level(), pos, player);
@@ -468,7 +517,13 @@ public class PlayerActionPack {
                         } else {
                             ap.curBlockDamageMP += state.getDestroyProgress(player, player.level(), pos);
                             if (ap.curBlockDamageMP >= 1) {
-                                player.gameMode.handleBlockBreakAction(pos, ServerboundPlayerActionPacket.Action.STOP_DESTROY_BLOCK, side, player.level().getMaxBuildHeight(), -1);
+                                player.gameMode.handleBlockBreakAction(
+                                    pos,
+                                    ServerboundPlayerActionPacket.Action.STOP_DESTROY_BLOCK,
+                                    side,
+                                    player.level().getMaxY(),
+                                    -1
+                                );
                                 ap.currentBlock = null;
                                 ap.blockHitDelay = 5;
                                 blockBroken = true;
@@ -489,11 +544,16 @@ public class PlayerActionPack {
                 PlayerActionPack ap = ((IServerPlayerInjector) player).getActionPack();
                 if (ap.currentBlock == null) return;
                 player.level().destroyBlockProgress(-1, ap.currentBlock, -1);
-                player.gameMode.handleBlockBreakAction(ap.currentBlock, ServerboundPlayerActionPacket.Action.ABORT_DESTROY_BLOCK, Direction.DOWN, player.level().getMaxBuildHeight(), -1);
+                player.gameMode.handleBlockBreakAction(
+                    ap.currentBlock,
+                    ServerboundPlayerActionPacket.Action.ABORT_DESTROY_BLOCK,
+                    Direction.DOWN,
+                    player.level().getMaxY(),
+                    -1
+                );
                 ap.currentBlock = null;
             }
-        },
-        JUMP {
+        }, JUMP {
             @Override
             boolean execute(ServerPlayer player, Action action) {
                 if (action.limit == 1) {
@@ -508,24 +568,21 @@ public class PlayerActionPack {
             void inactiveTick(ServerPlayer player, Action action) {
                 player.setJumping(false);
             }
-        },
-        DROP_ITEM {
+        }, DROP_ITEM {
             @Override
             boolean execute(ServerPlayer player, Action action) {
                 player.resetLastActionTime();
                 player.drop(false); // dropSelectedItem
                 return false;
             }
-        },
-        DROP_STACK {
+        }, DROP_STACK {
             @Override
             boolean execute(ServerPlayer player, Action action) {
                 player.resetLastActionTime();
                 player.drop(true); // dropSelectedItem
                 return false;
             }
-        },
-        SWAP_HANDS {
+        }, SWAP_HANDS {
             @Override
             boolean execute(ServerPlayer player, Action action) {
                 player.resetLastActionTime();
@@ -628,7 +685,11 @@ public class PlayerActionPack {
 
         public static class Serializer implements JsonDeserializer<Action>, JsonSerializer<Action> {
             @Override
-            public Action deserialize(@NotNull JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
+            public Action deserialize(
+                @NotNull JsonElement json,
+                Type typeOfT,
+                JsonDeserializationContext context
+            ) throws JsonParseException {
                 if (!json.isJsonObject()) return Action.once();
                 JsonObject object = json.getAsJsonObject();
                 try {

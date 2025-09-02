@@ -2,6 +2,7 @@ package dev.anvilcraft.rg.sd.event;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import dev.anvilcraft.rg.RollingGate;
 import dev.anvilcraft.rg.api.RGValidator;
 import dev.anvilcraft.rg.api.event.ServerAboutToStopEvent;
 import dev.anvilcraft.rg.sd.SiliconeDolls;
@@ -9,18 +10,20 @@ import dev.anvilcraft.rg.sd.SiliconeDollsServerRules;
 import dev.anvilcraft.rg.sd.combat.CombatManager;
 import dev.anvilcraft.rg.sd.entity.FakePlayer;
 import dev.anvilcraft.rg.sd.init.ModCommands;
-import dev.anvilcraft.rg.sd.util.IClientMenuTickInjector;
-import dev.anvilcraft.rg.sd.util.ClientUtils;
 import dev.anvilcraft.rg.sd.tool.FakePlayerResident;
 import dev.anvilcraft.rg.sd.tool.PlayerContainer;
+import dev.anvilcraft.rg.sd.util.ClientUtils;
+import dev.anvilcraft.rg.sd.util.IClientMenuTickInjector;
 import dev.anvilcraft.rg.sd.util.RuleUtils;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.util.ProblemReporter;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.storage.LevelResource;
+import net.minecraft.world.level.storage.TagValueOutput;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.bus.api.EventPriority;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -69,7 +72,10 @@ public class EventListeners {
                 event.setCancellationResult(InteractionResult.CONSUME);
             }
         } else if (player instanceof ServerPlayer serverPlayer && entity instanceof ServerPlayer otherPlayer) {
-            boolean flag = RGValidator.CommandRuleValidator.hasPermission(() -> SiliconeDollsServerRules.openRealPlayerInventory, player.createCommandSourceStack());
+            boolean flag = RGValidator.CommandRuleValidator.hasPermission(
+                () -> SiliconeDollsServerRules.openRealPlayerInventory,
+                serverPlayer.createCommandSourceStack()
+            );
             flag = (entity instanceof FakePlayer fake && !fake.isShadow()) || flag;
             if ((SiliconeDollsServerRules.openFakePlayerInventory || RuleUtils.openFakePlayerEnderChest(player)) && flag) {
                 // 打开物品栏
@@ -102,7 +108,15 @@ public class EventListeners {
             JsonObject fakePlayerList = new JsonObject();
             server.getPlayerList().getPlayers().forEach(player -> {
                 if (!(player instanceof FakePlayer)) return;
-                if (player.saveWithoutId(new CompoundTag()).contains("rolling_gate.NoResident")) return;
+                CompoundTag tag;
+                try (
+                    ProblemReporter.ScopedCollector reporter = new ProblemReporter.ScopedCollector(player.problemPath(), RollingGate.LOGGER)
+                ) {
+                    TagValueOutput valueOutput = TagValueOutput.createWithContext(reporter, player.registryAccess());
+                    player.saveWithoutId(valueOutput);
+                    tag = valueOutput.buildResult();
+                }
+                if (tag.contains("rolling_gate.NoResident")) return;
                 String username = player.getGameProfile().getName();
                 fakePlayerList.add(username, FakePlayerResident.save(player));
             });

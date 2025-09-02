@@ -2,8 +2,12 @@ plugins {
     id 'java-library'
     id 'maven-publish'
     id 'idea'
-    id 'net.neoforged.moddev' version '2.0.77'
+    id 'net.neoforged.moddev' version '2.0.107'
     id 'io.freefair.lombok' version '8.7.1'
+}
+
+tasks.named('wrapper', Wrapper).configure {
+    distributionType = Wrapper.DistributionType.BIN
 }
 
 String buildNumber
@@ -20,7 +24,7 @@ apply from: "$rootDir/gradle/scripts/repositories.gradle"
 apply from: "$rootDir/gradle/scripts/dependencies.gradle"
 
 base {
-    archivesName = mod_name + "-neoforge-1.21.1"
+    archivesName = mod_name + "-neoforge-1.21.8"
 }
 
 java.toolchain.languageVersion = JavaLanguageVersion.of(21)
@@ -62,7 +66,7 @@ neoForge {
         }
 
         data {
-            data()
+            clientData()
 
             // example of overriding the workingDirectory set in configureEach above, uncomment if you want to use it
             // gameDirectory = project.file('run-data')
@@ -71,6 +75,7 @@ neoForge {
             programArguments.addAll '--mod', project.mod_id, '--all', '--output', file('src/generated/resources/').getAbsolutePath(), '--existing', file('src/main/resources/').getAbsolutePath()
         }
 
+        var isJbr = System.getProperty('java.vm.vendor').contains('JetBrains')
         // applies to all the run configs above
         configureEach {
             // Recommended logging data for a userdev environment
@@ -79,7 +84,9 @@ neoForge {
             // "REGISTRIES": For firing of registry events.
             // "REGISTRYDUMP": For getting the contents of all registries.
             systemProperty 'forge.logging.markers', 'REGISTRIES'
-
+            if (isJbr) {
+                jvmArgument "-XX:+AllowEnhancedClassRedefinition"
+            }
             // Recommended logging level for the console
             // You can set various levels here.
             // Please read: https://stackoverflow.com/questions/2031163/when-to-use-the-different-log-levels

@@ -13,8 +13,8 @@ import dev.anvilcraft.rg.sd.mixin.PlayerAccessor;
 import dev.anvilcraft.rg.sd.util.IServerPlayerInjector;
 import net.minecraft.core.UUIDUtil;
 import net.minecraft.network.protocol.PacketFlow;
+import net.minecraft.network.protocol.game.ClientboundEntityPositionSyncPacket;
 import net.minecraft.network.protocol.game.ClientboundRotateHeadPacket;
-import net.minecraft.network.protocol.game.ClientboundTeleportEntityPacket;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ClientInformation;
 import net.minecraft.server.level.ServerLevel;
@@ -58,26 +58,34 @@ public class FakePlayerResident {
             gameprofile = new GameProfile(UUIDUtil.createOfflinePlayerUUID(username), username);
         }
         GameProfile finalGameprofile = gameprofile;
-        SkullBlockEntity.fetchGameProfile(gameprofile.getName()).thenAcceptAsync((p) -> {
-            GameProfile current = finalGameprofile;
-            if (p.isPresent()) {
-                current = p.get();
-            }
-            FakePlayer playerMPFake = FakePlayer.create(server, server.overworld(), current, ClientInformation.createDefault(), false);
-            //noinspection deprecation
-            server.getPlayerList().placeNewPlayer(new FakeClientConnection(PacketFlow.SERVERBOUND), playerMPFake,
-                new CommonListenerCookie(current, 0, playerMPFake.clientInformation(), false));
-            playerMPFake.setHealth(20.0F);
-            AttributeInstance attribute = playerMPFake.getAttribute(Attributes.STEP_HEIGHT);
-            if (attribute != null) attribute.setBaseValue(0.6F);
-            @SuppressWarnings("resource") ServerLevel level = playerMPFake.serverLevel();
-            server.getPlayerList().broadcastAll(new ClientboundRotateHeadPacket(playerMPFake, ((byte) (playerMPFake.yHeadRot * 256.0F / 360.0F))), level.dimension());
-            server.getPlayerList().broadcastAll(new ClientboundTeleportEntityPacket(playerMPFake), level.dimension());
-            playerMPFake.getEntityData().set(PlayerAccessor.getCustomisationData(), (byte) 127);
-            PlayerActionPack actionPack = SiliconeDolls.GSON.fromJson(actions, PlayerActionPack.class);
-            ((IServerPlayerInjector) playerMPFake).getActionPack().copyFrom(actionPack);
-            ((EntityInvoker) playerMPFake).invokerUnsetRemoved();
-        }, server);
+        SkullBlockEntity.fetchGameProfile(gameprofile.getName()).thenAcceptAsync(
+            (p) -> {
+                GameProfile current = finalGameprofile;
+                if (p.isPresent()) {
+                    current = p.get();
+                }
+                FakePlayer playerMPFake = FakePlayer.create(server, server.overworld(), current, ClientInformation.createDefault(), false);
+                //noinspection deprecation
+                server.getPlayerList().placeNewPlayer(
+                    new FakeClientConnection(PacketFlow.SERVERBOUND), playerMPFake,
+                    new CommonListenerCookie(current, 0, playerMPFake.clientInformation(), false)
+                );
+                playerMPFake.setHealth(20.0F);
+                AttributeInstance attribute = playerMPFake.getAttribute(Attributes.STEP_HEIGHT);
+                if (attribute != null) attribute.setBaseValue(0.6F);
+                @SuppressWarnings("resource") ServerLevel level = playerMPFake.level();
+                server.getPlayerList()
+                    .broadcastAll(
+                        new ClientboundRotateHeadPacket(playerMPFake, ((byte) (playerMPFake.yHeadRot * 256.0F / 360.0F))),
+                        level.dimension()
+                    );
+                server.getPlayerList().broadcastAll(ClientboundEntityPositionSyncPacket.of(playerMPFake), level.dimension());
+                playerMPFake.getEntityData().set(PlayerAccessor.getCustomisationData(), (byte) 127);
+                PlayerActionPack actionPack = SiliconeDolls.GSON.fromJson(actions, PlayerActionPack.class);
+                ((IServerPlayerInjector) playerMPFake).getActionPack().copyFrom(actionPack);
+                ((EntityInvoker) playerMPFake).invokerUnsetRemoved();
+            }, server
+        );
     }
 
     public static void load(Map.@NotNull Entry<String, JsonElement> entry, MinecraftServer server) {

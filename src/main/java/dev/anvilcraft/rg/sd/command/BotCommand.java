@@ -31,8 +31,8 @@ import net.minecraft.network.chat.HoverEvent;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.Style;
 import net.minecraft.network.protocol.PacketFlow;
+import net.minecraft.network.protocol.game.ClientboundPlayerInfoUpdatePacket;
 import net.minecraft.network.protocol.game.ClientboundRotateHeadPacket;
-import net.minecraft.network.protocol.game.ClientboundTeleportEntityPacket;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ClientInformation;
 import net.minecraft.server.level.ServerLevel;
@@ -53,140 +53,81 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 
-@SuppressWarnings({"SameParameterValue", "unused"})
+@SuppressWarnings(
+    {
+        "SameParameterValue",
+        "unused"
+    }
+)
 public class BotCommand {
     public static final FilesUtil.MapFile<String, BotInfo> BOT_INFO = new FilesUtil.MapFile<>("bot", Object::toString, BotInfo.class);
-    public static final FilesUtil.MapFile<String, BotGroupInfo> BOT_GROUP_INFO = new FilesUtil.MapFile<>("botGroup", Object::toString, BotGroupInfo.class);
+    public static final FilesUtil.MapFile<String, BotGroupInfo> BOT_GROUP_INFO = new FilesUtil.MapFile<>(
+        "botGroup",
+        Object::toString,
+        BotGroupInfo.class
+    );
 
     static {
-        BOT_INFO.setGson(
-            builder -> builder
-                .registerTypeHierarchyAdapter(PlayerActionPack.class, new PlayerActionPack.Serializer())
-                .registerTypeHierarchyAdapter(PlayerActionPack.Action.class, new PlayerActionPack.Action.Serializer())
-        );
-        BOT_GROUP_INFO.setGson(
-            builder -> builder
-                .registerTypeHierarchyAdapter(PlayerActionPack.class, new PlayerActionPack.Serializer())
-                .registerTypeHierarchyAdapter(PlayerActionPack.Action.class, new PlayerActionPack.Action.Serializer())
-        );
+        BOT_INFO.setGson(builder -> builder.registerTypeHierarchyAdapter(PlayerActionPack.class, new PlayerActionPack.Serializer())
+            .registerTypeHierarchyAdapter(PlayerActionPack.Action.class, new PlayerActionPack.Action.Serializer()));
+        BOT_GROUP_INFO.setGson(builder -> builder.registerTypeHierarchyAdapter(PlayerActionPack.class, new PlayerActionPack.Serializer())
+            .registerTypeHierarchyAdapter(PlayerActionPack.Action.class, new PlayerActionPack.Action.Serializer()));
     }
 
     public static void register(@NotNull CommandDispatcher<CommandSourceStack> dispatcher) {
-        dispatcher.register(
-            Commands.literal("bot")
+        dispatcher.register(Commands.literal("bot")
+            .executes(BotCommand::list)
+            .requires(source -> RGValidator.CommandRuleValidator.hasPermission(() -> SiliconeDollsServerRules.commandBot, source))
+            .then(Commands.literal("list")
                 .executes(BotCommand::list)
+                .then(Commands.argument("page", IntegerArgumentType.integer(1)).executes(BotCommand::list)))
+            .then(Commands.literal("add")
+                .then(Commands.argument("player", EntityArgument.player())
+                    .then(Commands.argument("desc", StringArgumentType.greedyString()).executes(BotCommand::add))))
+            .then(Commands.literal("load")
+                .then(Commands.argument("player", StringArgumentType.string())
+                    .suggests(BotCommand.suggestBot())
+                    .executes(BotCommand::load)))
+            .then(Commands.literal("remove")
+                .then(Commands.argument("player", StringArgumentType.string())
+                    .suggests(BotCommand.suggestBot())
+                    .executes(BotCommand::remove)))
+            .then(Commands.literal("group")
                 .requires(source -> RGValidator.CommandRuleValidator.hasPermission(() -> SiliconeDollsServerRules.commandBot, source))
-                .then(
-                    Commands.literal("list")
-                        .executes(BotCommand::list)
-                        .then(
-                            Commands.argument("page", IntegerArgumentType.integer(1))
-                                .executes(BotCommand::list)
-                        )
-                )
-                .then(
-                    Commands.literal("add")
-                        .then(
-                            Commands.argument("player", EntityArgument.player())
-                                .then(
-                                    Commands.argument("desc", StringArgumentType.greedyString())
-                                        .executes(BotCommand::add)
-                                )
-                        )
-                )
-                .then(
-                    Commands.literal("load")
-                        .then(
-                            Commands.argument("player", StringArgumentType.string())
-                                .suggests(BotCommand.suggestBot())
-                                .executes(BotCommand::load)
-                        )
-                )
-                .then(
-                    Commands.literal("remove")
-                        .then(
-                            Commands.argument("player", StringArgumentType.string())
-                                .suggests(BotCommand.suggestBot())
-                                .executes(BotCommand::remove)
-                        )
-                )
-                .then(
-                    Commands.literal("group")
-                        .requires(source -> RGValidator.CommandRuleValidator.hasPermission(() -> SiliconeDollsServerRules.commandBot, source))
-                        .executes(BotCommand::groupList)
-                        .then(
-                            Commands.literal("create")
-                                .then(
-                                    Commands.argument("name", StringArgumentType.greedyString())
-                                        .executes(BotCommand::groupCreate)
-                                )
-                        )
-                        .then(
-                            Commands.literal("list")
-                                .executes(BotCommand::groupList)
-                                .then(
-                                    Commands.argument("page", IntegerArgumentType.integer(1))
-                                        .executes(BotCommand::groupList)
-                                )
-                        )
-                        .then(
-                            Commands.literal("remove")
-                                .then(
-                                    Commands.argument("name", StringArgumentType.greedyString())
-                                        .suggests(BotCommand.suggestBotGroup())
-                                        .executes(BotCommand::groupRemove)
-                                )
-                        )
-                        .then(
-                            Commands.literal("add")
-                                .then(
-                                    Commands.argument("bot", StringArgumentType.string())
-                                        .suggests(BotCommand.suggestBot())
-                                        .then(
-                                            Commands.argument("group", StringArgumentType.greedyString())
-                                                .suggests(BotCommand.suggestBotGroup())
-                                                .executes(BotCommand::groupAddBot)
-                                        )
-                                )
-                        )
-                        .then(
-                            Commands.literal("remove")
-                                .then(
-                                    Commands.argument("bot", StringArgumentType.string())
-                                        .suggests(BotCommand.suggestBot())
-                                        .then(
-                                            Commands.argument("group", StringArgumentType.greedyString())
-                                                .suggests(BotCommand.suggestBotGroup())
-                                                .executes(BotCommand::groupRemoveBot)
-                                        )
-                                )
-                        )
-                        .then(
-                            Commands.literal("load")
-                                .then(
-                                    Commands.argument("group", StringArgumentType.greedyString())
-                                        .suggests(BotCommand.suggestBotGroup())
-                                        .executes(BotCommand::groupLoadBot)
-                                )
-                        )
-                        .then(
-                            Commands.literal("unload")
-                                .then(
-                                    Commands.argument("group", StringArgumentType.greedyString())
-                                        .suggests(BotCommand.suggestBotGroup())
-                                        .executes(BotCommand::groupUnloadBot)
-                                )
-                        )
-                        .then(
-                            Commands.literal("info")
-                                .then(
-                                    Commands.argument("group", StringArgumentType.greedyString())
-                                        .suggests(BotCommand.suggestBotGroup())
-                                        .executes(BotCommand::groupInfo)
-                                )
-                        )
-                )
-        );
+                .executes(BotCommand::groupList)
+                .then(Commands.literal("create")
+                    .then(Commands.argument("name", StringArgumentType.greedyString()).executes(BotCommand::groupCreate)))
+                .then(Commands.literal("list")
+                    .executes(BotCommand::groupList)
+                    .then(Commands.argument("page", IntegerArgumentType.integer(1)).executes(BotCommand::groupList)))
+                .then(Commands.literal("remove")
+                    .then(Commands.argument("name", StringArgumentType.greedyString())
+                        .suggests(BotCommand.suggestBotGroup())
+                        .executes(BotCommand::groupRemove)))
+                .then(Commands.literal("add")
+                    .then(Commands.argument("bot", StringArgumentType.string())
+                        .suggests(BotCommand.suggestBot())
+                        .then(Commands.argument("group", StringArgumentType.greedyString())
+                            .suggests(BotCommand.suggestBotGroup())
+                            .executes(BotCommand::groupAddBot))))
+                .then(Commands.literal("remove")
+                    .then(Commands.argument("bot", StringArgumentType.string())
+                        .suggests(BotCommand.suggestBot())
+                        .then(Commands.argument("group", StringArgumentType.greedyString())
+                            .suggests(BotCommand.suggestBotGroup())
+                            .executes(BotCommand::groupRemoveBot))))
+                .then(Commands.literal("load")
+                    .then(Commands.argument("group", StringArgumentType.greedyString())
+                        .suggests(BotCommand.suggestBotGroup())
+                        .executes(BotCommand::groupLoadBot)))
+                .then(Commands.literal("unload")
+                    .then(Commands.argument("group", StringArgumentType.greedyString())
+                        .suggests(BotCommand.suggestBotGroup())
+                        .executes(BotCommand::groupUnloadBot)))
+                .then(Commands.literal("info")
+                    .then(Commands.argument("group", StringArgumentType.greedyString())
+                        .suggests(BotCommand.suggestBotGroup())
+                        .executes(BotCommand::groupInfo)))));
     }
 
     private static int list(CommandContext<CommandSourceStack> context) {
@@ -206,10 +147,9 @@ public class BotCommand {
         }
         BotInfo[] botInfos = BOT_INFO.map.values().toArray(new BotInfo[0]);
 
-        context.getSource().sendSystemMessage(
-            TranslationUtil.trans("silicone_dolls.commands.title.bot_list", page, maxPage)
-                .withStyle(ChatFormatting.YELLOW)
-        );
+        context.getSource()
+            .sendSystemMessage(TranslationUtil.trans("silicone_dolls.commands.title.bot_list", page, maxPage)
+                .withStyle(ChatFormatting.YELLOW));
         for (int i = (page - 1) * pageSize; i < size && i < page * pageSize; i++) {
             context.getSource().sendSystemMessage(botToComponent(botInfos[i]));
         }
@@ -218,55 +158,41 @@ public class BotCommand {
     }
 
     private static @NotNull MutableComponent botToComponent(@NotNull BotInfo botInfo) {
-        MutableComponent desc = Component.literal(botInfo.desc).withStyle(
-            Style.EMPTY
-                .applyFormat(ChatFormatting.GRAY)
-                .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Component.literal(botInfo.name)))
-        );
+        MutableComponent desc = Component.literal(botInfo.desc)
+            .withStyle(Style.EMPTY.applyFormat(ChatFormatting.GRAY)
+                .withHoverEvent(new HoverEvent.ShowText(Component.literal(botInfo.name))));
         boolean notOnline = BOT_INFO.server.getPlayerList().getPlayerByName(botInfo.name) == null;
-        MutableComponent load = Component.literal("[↑]").withStyle(
-            Style.EMPTY
-                .applyFormat(notOnline ? ChatFormatting.GREEN : ChatFormatting.GRAY)
-                .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, TranslationUtil.trans("silicone_dolls.commands.button.bot.load")))
-                .withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/bot load %s".formatted(botInfo.name)))
-        );
-        MutableComponent remove = Component.literal("[↓]").withStyle(
-            Style.EMPTY
-                .applyFormat(notOnline ? ChatFormatting.GRAY : ChatFormatting.RED)
-                .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, TranslationUtil.trans("silicone_dolls.commands.button.bot.unload")))
-                .withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/player %s kill".formatted(botInfo.name)))
-        );
-        MutableComponent delete = Component.literal("[\uD83D\uDDD1]").withStyle(
-            Style.EMPTY
-                .applyFormat(ChatFormatting.RED)
-                .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, TranslationUtil.trans("silicone_dolls.commands.button.bot.remove")))
-                .withClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, "/bot remove %s".formatted(botInfo.name)))
-        );
-        MutableComponent component = Component.literal("▶ ")
-            .withStyle(notOnline ? ChatFormatting.RED : ChatFormatting.GREEN)
-            .append(desc);
+        MutableComponent load = Component.literal("[↑]")
+            .withStyle(Style.EMPTY.applyFormat(notOnline ? ChatFormatting.GREEN : ChatFormatting.GRAY)
+                .withHoverEvent(new HoverEvent.ShowText(TranslationUtil.trans("silicone_dolls.commands.button.bot.load")))
+                .withClickEvent(new ClickEvent.RunCommand("/bot load %s".formatted(botInfo.name))));
+        MutableComponent remove = Component.literal("[↓]")
+            .withStyle(Style.EMPTY.applyFormat(notOnline ? ChatFormatting.GRAY : ChatFormatting.RED)
+                .withHoverEvent(new HoverEvent.ShowText(TranslationUtil.trans("silicone_dolls.commands.button.bot.unload")))
+                .withClickEvent(new ClickEvent.RunCommand("/player %s kill".formatted(botInfo.name))));
+        MutableComponent delete = Component.literal("[\uD83D\uDDD1]")
+            .withStyle(Style.EMPTY.applyFormat(ChatFormatting.RED)
+                .withHoverEvent(new HoverEvent.ShowText(TranslationUtil.trans("silicone_dolls.commands.button.bot.remove")))
+                .withClickEvent(new ClickEvent.RunCommand("/bot remove %s".formatted(botInfo.name))));
+        MutableComponent component = Component.literal("▶ ").withStyle(notOnline ? ChatFormatting.RED : ChatFormatting.GREEN).append(desc);
         component.append(" ").append(load);
         component.append(" ").append(remove);
         return component.append(" ").append(delete);
     }
 
     private static void listComponent(@NotNull CommandContext<CommandSourceStack> context, int page, int maxPage, String command) {
-        Component prevPage = page <= 1 ?
-            Component.literal("<<<").withStyle(ChatFormatting.GRAY) :
-            Component.literal("<<<").withStyle(
-                Style.EMPTY
-                    .applyFormat(ChatFormatting.GREEN)
-                    .withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, command + " " + (page - 1)))
-            );
-        Component nextPage = page >= maxPage ?
-            Component.literal(">>>").withStyle(ChatFormatting.GRAY) :
-            Component.literal(">>>").withStyle(
-                Style.EMPTY
-                    .applyFormat(ChatFormatting.GREEN)
-                    .withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, command + " " + (page + 1)))
-            );
-        context.getSource().sendSystemMessage(
-            Component.literal("=======")
+        Component prevPage = page <= 1
+                             ? Component.literal("<<<").withStyle(ChatFormatting.GRAY)
+                             : Component.literal("<<<")
+                                 .withStyle(Style.EMPTY.applyFormat(ChatFormatting.GREEN)
+                                     .withClickEvent(new ClickEvent.RunCommand(command + " " + (page - 1))));
+        Component nextPage = page >= maxPage
+                             ? Component.literal(">>>").withStyle(ChatFormatting.GRAY)
+                             : Component.literal(">>>")
+                                 .withStyle(Style.EMPTY.applyFormat(ChatFormatting.GREEN)
+                                     .withClickEvent(new ClickEvent.RunCommand(command + " " + (page + 1))));
+        context.getSource()
+            .sendSystemMessage(Component.literal("=======")
                 .withStyle(ChatFormatting.YELLOW)
                 .append(" ")
                 .append(prevPage)
@@ -275,8 +201,7 @@ public class BotCommand {
                 .append(" ")
                 .append(nextPage)
                 .append(" ")
-                .append(Component.literal("=======").withStyle(ChatFormatting.YELLOW))
-        );
+                .append(Component.literal("=======").withStyle(ChatFormatting.YELLOW)));
     }
 
     private static @NotNull SuggestionProvider<CommandSourceStack> suggestBot() {
@@ -304,33 +229,62 @@ public class BotCommand {
             GameProfile gameprofile;
             try {
                 GameProfileCache profileCache = BOT_INFO.server.getProfileCache();
-                if (profileCache == null) gameprofile = null;
-                else gameprofile = profileCache.get(name).orElse(null);
+                if (profileCache == null) {
+                    gameprofile = null;
+                } else {
+                    gameprofile = profileCache.get(name).orElse(null);
+                }
                 if (gameprofile == null) {
                     if (!SiliconeDollsServerRules.allowSpawningOfflinePlayers) return false;
                     gameprofile = new GameProfile(UUIDUtil.createOfflinePlayerUUID(name), name);
                 }
                 GameProfile finalGP = gameprofile;
-                SkullBlockEntity.fetchGameProfile(gameprofile.getName()).thenAcceptAsync((p) -> {
-                    GameProfile current = finalGP;
-                    if (p.isPresent()) current = p.get();
-                    if (worldIn == null) return;
-                    FakePlayer instance = FakePlayer.create(BOT_INFO.server, worldIn, current, ClientInformation.createDefault(), false);
-                    instance.fixStartingPosition = () -> instance.moveTo(botInfo.pos.x, botInfo.pos.y, botInfo.pos.z, botInfo.facing.y, botInfo.facing.x);
-                    BOT_INFO.server.getPlayerList().placeNewPlayer(new FakeClientConnection(PacketFlow.SERVERBOUND), instance, new CommonListenerCookie(current, 0, instance.clientInformation(), false, ConnectionType.OTHER));
-                    instance.teleportTo(worldIn, botInfo.pos.x, botInfo.pos.y, botInfo.pos.z, botInfo.facing.y, botInfo.facing.x);
-                    instance.setHealth(20.0F);
-                    ((EntityInvoker) instance).invokerUnsetRemoved();
-                    AttributeInstance attribute = instance.getAttribute(Attributes.STEP_HEIGHT);
-                    if (attribute != null) attribute.setBaseValue(0.6000000238418579);
-                    instance.gameMode.changeGameModeForPlayer(botInfo.mode);
-                    BOT_INFO.server.getPlayerList().broadcastAll(new ClientboundRotateHeadPacket(instance, (byte) ((int) (instance.yHeadRot * 256.0F / 360.0F))), botInfo.dimType);
-                    BOT_INFO.server.getPlayerList().broadcastAll(new ClientboundTeleportEntityPacket(instance), botInfo.dimType);
-                    instance.getEntityData().set(PlayerAccessor.getCustomisationData(), (byte) 127);
-                    instance.getAbilities().flying = botInfo.flying;
-                    PlayerActionPack actionPack = botInfo.actions;
-                    ((IServerPlayerInjector) instance).getActionPack().copyFrom(actionPack);
-                }, BOT_INFO.server);
+                SkullBlockEntity.fetchGameProfile(gameprofile.getName()).thenAcceptAsync(
+                    (p) -> {
+                        GameProfile current = finalGP;
+                        if (p.isPresent()) current = p.get();
+                        if (worldIn == null) return;
+                        FakePlayer instance = FakePlayer.create(
+                            BOT_INFO.server,
+                            worldIn,
+                            current,
+                            ClientInformation.createDefault(),
+                            false
+                        );
+                        instance.fixStartingPosition = () -> instance.snapTo(
+                            botInfo.pos.x,
+                            botInfo.pos.y,
+                            botInfo.pos.z,
+                            botInfo.facing.y,
+                            botInfo.facing.x
+                        );
+                        BOT_INFO.server.getPlayerList().placeNewPlayer(
+                            new FakeClientConnection(PacketFlow.SERVERBOUND),
+                            instance,
+                            new CommonListenerCookie(current, 0, instance.clientInformation(), false, ConnectionType.OTHER)
+                        );
+                        instance.connection.teleport(botInfo.pos.x, botInfo.pos.y, botInfo.pos.z, botInfo.facing.y, botInfo.facing.x);
+                        instance.setHealth(20.0F);
+                        ((EntityInvoker) instance).invokerUnsetRemoved();
+                        AttributeInstance attribute = instance.getAttribute(Attributes.STEP_HEIGHT);
+                        if (attribute != null) attribute.setBaseValue(0.6000000238418579);
+                        instance.gameMode.changeGameModeForPlayer(botInfo.mode);
+                        BOT_INFO.server.getPlayerList()
+                            .broadcastAll(
+                                new ClientboundRotateHeadPacket(instance, (byte) (instance.yHeadRot * 256 / 360)),
+                                botInfo.dimType
+                            );
+                        BOT_INFO.server.getPlayerList()
+                            .broadcastAll(new ClientboundPlayerInfoUpdatePacket(
+                                ClientboundPlayerInfoUpdatePacket.Action.ADD_PLAYER,
+                                instance
+                            ));
+                        instance.getEntityData().set(PlayerAccessor.getCustomisationData(), (byte) 127);
+                        instance.getAbilities().flying = botInfo.flying;
+                        PlayerActionPack actionPack = botInfo.actions;
+                        ((IServerPlayerInjector) instance).getActionPack().copyFrom(actionPack);
+                    }, BOT_INFO.server
+                );
                 success = true;
             } finally {
                 GameProfileCache.setUsesAuthentication(BOT_INFO.server.isDedicatedServer() && BOT_INFO.server.usesAuthentication());
@@ -365,8 +319,7 @@ public class BotCommand {
             return 0;
         }
         BotCommand.BOT_INFO.map.put(
-            name,
-            new BotInfo(
+            name, new BotInfo(
                 name,
                 StringArgumentType.getString(context, "desc"),
                 player.position(),
@@ -412,10 +365,7 @@ public class BotCommand {
             }
         }
         botNames.removeAll(failedBots);
-        BOT_GROUP_INFO.map.put(
-            groupName,
-            new BotGroupInfo(groupName, botNames)
-        );
+        BOT_GROUP_INFO.map.put(groupName, new BotGroupInfo(groupName, botNames));
         BOT_GROUP_INFO.save();
         return false;
     }
@@ -440,10 +390,9 @@ public class BotCommand {
         for (String botName : BOT_GROUP_INFO.map.get(groupName).bots) {
             botInfos.add(BOT_INFO.map.get(botName));
         }
-        context.getSource().sendSystemMessage(
-            TranslationUtil.trans("silicone_dolls.commands.title.bot_group_info", groupName, page, maxPage)
-                .withStyle(ChatFormatting.YELLOW)
-        );
+        context.getSource()
+            .sendSystemMessage(TranslationUtil.trans("silicone_dolls.commands.title.bot_group_info", groupName, page, maxPage)
+                .withStyle(ChatFormatting.YELLOW));
         for (int i = (page - 1) * pageSize; i < size && i < page * pageSize; i++) {
             context.getSource().sendSystemMessage(botToComponent(botInfos.get(i)));
         }
@@ -484,10 +433,7 @@ public class BotCommand {
             load(botName, source::sendFailure);
         }
         botNames.removeAll(failedBots);
-        BOT_GROUP_INFO.map.put(
-            groupName,
-            new BotGroupInfo(groupName, botNames)
-        );
+        BOT_GROUP_INFO.map.put(groupName, new BotGroupInfo(groupName, botNames));
         BOT_GROUP_INFO.save();
         return 1;
     }
@@ -507,13 +453,7 @@ public class BotCommand {
             return 0;
         }
         botNames.remove(botName);
-        BotCommand.BOT_GROUP_INFO.map.put(
-            groupName,
-            new BotGroupInfo(
-                groupName,
-                botNames
-            )
-        );
+        BotCommand.BOT_GROUP_INFO.map.put(groupName, new BotGroupInfo(groupName, botNames));
         BOT_GROUP_INFO.save();
         source.sendSuccess(() -> TranslationUtil.trans("silicone_dolls.commands.tips.bot_removed", botName, groupName), false);
         return 1;
@@ -540,13 +480,7 @@ public class BotCommand {
             return 0;
         }
         botNames.add(botName);
-        BotCommand.BOT_GROUP_INFO.map.put(
-            groupName,
-            new BotGroupInfo(
-                groupName,
-                botNames
-            )
-        );
+        BotCommand.BOT_GROUP_INFO.map.put(groupName, new BotGroupInfo(groupName, botNames));
         BOT_GROUP_INFO.save();
         source.sendSuccess(() -> TranslationUtil.trans("silicone_dolls.commands.tips.bot_added", botName, groupName), false);
         return 1;
@@ -560,10 +494,7 @@ public class BotCommand {
             source.sendFailure(TranslationUtil.trans("silicone_dolls.commands.tips.group_already_exists", groupName));
             return 0;
         }
-        BOT_GROUP_INFO.map.put(
-            groupName,
-            new BotGroupInfo(groupName, new ArrayList<>())
-        );
+        BOT_GROUP_INFO.map.put(groupName, new BotGroupInfo(groupName, new ArrayList<>()));
         BOT_GROUP_INFO.save();
         source.sendSuccess(() -> TranslationUtil.trans("silicone_dolls.commands.tips.group_created_successfully", groupName), false);
         return 1;
@@ -598,10 +529,9 @@ public class BotCommand {
             return 0;
         }
         BotGroupInfo[] botGroupInfos = BOT_GROUP_INFO.map.values().toArray(new BotGroupInfo[0]);
-        context.getSource().sendSystemMessage(
-            TranslationUtil.trans("silicone_dolls.commands.title.bot_group_list", page, maxPage)
-                .withStyle(ChatFormatting.YELLOW)
-        );
+        context.getSource()
+            .sendSystemMessage(TranslationUtil.trans("silicone_dolls.commands.title.bot_group_list", page, maxPage)
+                .withStyle(ChatFormatting.YELLOW));
         for (int i = (page - 1) * pageSize; i < size && i < page * pageSize; i++) {
             context.getSource().sendSystemMessage(botGroupToComponent(botGroupInfos[i]));
         }
@@ -610,35 +540,25 @@ public class BotCommand {
     }
 
     private static @NotNull MutableComponent botGroupToComponent(@NotNull BotGroupInfo botGroupInfo) {
-        MutableComponent name = Component.literal(botGroupInfo.name).withStyle(
-            Style.EMPTY
-                .applyFormat(ChatFormatting.GRAY)
-                .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Component.literal(botGroupInfo.name)))
-        );
-        MutableComponent load = Component.literal("[↑]").withStyle(
-            Style.EMPTY
-                .applyFormat(ChatFormatting.GREEN)
-                .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, TranslationUtil.trans("silicone_dolls.commands.button.bot_group.load")))
-                .withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/bot group load %s".formatted(botGroupInfo.name)))
-        );
-        MutableComponent remove = Component.literal("[↓]").withStyle(
-            Style.EMPTY
-                .applyFormat(ChatFormatting.RED)
-                .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, TranslationUtil.trans("silicone_dolls.commands.button.bot_group.unload")))
-                .withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/bot group unload %s".formatted(botGroupInfo.name)))
-        );
-        MutableComponent info = Component.literal("[i]").withStyle(
-            Style.EMPTY
-                .applyFormat(ChatFormatting.RED)
-                .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, TranslationUtil.trans("silicone_dolls.commands.button.bot_group.info")))
-                .withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/bot group info %s".formatted(botGroupInfo.name)))
-        );
-        MutableComponent delete = Component.literal("[\uD83D\uDDD1]").withStyle(
-            Style.EMPTY
-                .applyFormat(ChatFormatting.RED)
-                .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, TranslationUtil.trans("silicone_dolls.commands.button.bot_group.remove")))
-                .withClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, "/bot group remove %s".formatted(botGroupInfo.name)))
-        );
+        MutableComponent name = Component.literal(botGroupInfo.name)
+            .withStyle(Style.EMPTY.applyFormat(ChatFormatting.GRAY)
+                .withHoverEvent(new HoverEvent.ShowText(Component.literal(botGroupInfo.name))));
+        MutableComponent load = Component.literal("[↑]")
+            .withStyle(Style.EMPTY.applyFormat(ChatFormatting.GREEN)
+                .withHoverEvent(new HoverEvent.ShowText(TranslationUtil.trans("silicone_dolls.commands.button.bot_group.load")))
+                .withClickEvent(new ClickEvent.RunCommand("/bot group load %s".formatted(botGroupInfo.name))));
+        MutableComponent remove = Component.literal("[↓]")
+            .withStyle(Style.EMPTY.applyFormat(ChatFormatting.RED)
+                .withHoverEvent(new HoverEvent.ShowText(TranslationUtil.trans("silicone_dolls.commands.button.bot_group.unload")))
+                .withClickEvent(new ClickEvent.RunCommand("/bot group unload %s".formatted(botGroupInfo.name))));
+        MutableComponent info = Component.literal("[i]")
+            .withStyle(Style.EMPTY.applyFormat(ChatFormatting.RED)
+                .withHoverEvent(new HoverEvent.ShowText(TranslationUtil.trans("silicone_dolls.commands.button.bot_group.info")))
+                .withClickEvent(new ClickEvent.RunCommand("/bot group info %s".formatted(botGroupInfo.name))));
+        MutableComponent delete = Component.literal("[\uD83D\uDDD1]")
+            .withStyle(Style.EMPTY.applyFormat(ChatFormatting.RED)
+                .withHoverEvent(new HoverEvent.ShowText(TranslationUtil.trans("silicone_dolls.commands.button.bot_group.remove")))
+                .withClickEvent(new ClickEvent.SuggestCommand("/bot group remove %s".formatted(botGroupInfo.name))));
         MutableComponent component = Component.literal("▶ ").append(name);
         component.append(" ").append(load);
         component.append(" ").append(remove);
@@ -660,8 +580,7 @@ public class BotCommand {
     }
 
     public record BotGroupInfo(
-        String name,
-        List<String> bots
+        String name, List<String> bots
     ) {
     }
 }

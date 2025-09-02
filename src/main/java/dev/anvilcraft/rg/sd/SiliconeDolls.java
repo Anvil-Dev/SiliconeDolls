@@ -3,11 +3,9 @@ package dev.anvilcraft.rg.sd;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.mojang.logging.LogUtils;
-import dev.anvilcraft.rg.api.RGAdditional;
-import dev.anvilcraft.rg.api.server.ServerRGRuleManager;
-import dev.anvilcraft.rg.api.server.TranslationUtil;
 import dev.anvilcraft.rg.sd.entity.PlayerActionPack;
 import dev.anvilcraft.rg.tools.DimTypeSerializer;
+import dev.anvilcraft.rg.tools.ResourceLocationSerializer;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.neoforged.bus.api.IEventBus;
@@ -21,7 +19,7 @@ public class SiliconeDolls {
     public static final Gson GSON = new GsonBuilder()
         .setPrettyPrinting()
         .registerTypeHierarchyAdapter(ResourceKey.class, new DimTypeSerializer())
-        .registerTypeHierarchyAdapter(ResourceLocation.class, new ResourceLocation.Serializer())
+        .registerTypeHierarchyAdapter(ResourceLocation.class, new ResourceLocationSerializer())
         .registerTypeHierarchyAdapter(PlayerActionPack.class, new PlayerActionPack.Serializer())
         .registerTypeHierarchyAdapter(PlayerActionPack.Action.class, new PlayerActionPack.Action.Serializer())
         .create();

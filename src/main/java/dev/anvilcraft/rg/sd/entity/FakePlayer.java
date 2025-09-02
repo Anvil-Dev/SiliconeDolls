@@ -10,9 +10,9 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.RemoteChatSession;
 import net.minecraft.network.chat.contents.TranslatableContents;
 import net.minecraft.network.protocol.PacketFlow;
+import net.minecraft.network.protocol.game.ClientboundEntityPositionSyncPacket;
 import net.minecraft.network.protocol.game.ClientboundPlayerInfoUpdatePacket;
 import net.minecraft.network.protocol.game.ClientboundRotateHeadPacket;
-import net.minecraft.network.protocol.game.ClientboundTeleportEntityPacket;
 import net.minecraft.network.protocol.game.ServerboundClientCommandPacket;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.TickTask;
@@ -32,11 +32,12 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.entity.SkullBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.portal.DimensionTransition;
+import net.minecraft.world.level.portal.TeleportTransition;
 import net.minecraft.world.phys.Vec2;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Set;
 import java.util.function.Consumer;
 
 public class FakePlayer extends ServerPlayer {
@@ -44,14 +45,30 @@ public class FakePlayer extends ServerPlayer {
     };
     private final boolean shadow;
 
-    private FakePlayer(MinecraftServer server, ServerLevel level, GameProfile gameProfile, ClientInformation clientInformation, boolean shadow) {
+    private FakePlayer(
+        MinecraftServer server,
+        ServerLevel level,
+        GameProfile gameProfile,
+        ClientInformation clientInformation,
+        boolean shadow
+    ) {
         super(server, level, gameProfile, clientInformation);
         this.shadow = shadow;
     }
 
-    public static boolean createFake(@NotNull MinecraftServer server, @NotNull String username, @NotNull Vec3 pos, @NotNull Vec2 facing, @NotNull ServerLevel level, @NotNull GameType gameMode, boolean flying) {
-        return FakePlayer.createFake(server, username, pos, facing, level, gameMode, flying, (player) -> {
-        });
+    public static boolean createFake(
+        @NotNull MinecraftServer server,
+        @NotNull String username,
+        @NotNull Vec3 pos,
+        @NotNull Vec2 facing,
+        @NotNull ServerLevel level,
+        @NotNull GameType gameMode,
+        boolean flying
+    ) {
+        return FakePlayer.createFake(
+            server, username, pos, facing, level, gameMode, flying, (player) -> {
+            }
+        );
     }
 
     public static boolean createFake(
@@ -68,8 +85,11 @@ public class FakePlayer extends ServerPlayer {
         GameProfile gameprofile;
         try {
             GameProfileCache profileCache = server.getProfileCache();
-            if (profileCache == null) gameprofile = null;
-            else gameprofile = profileCache.get(username).orElse(null); //findByName  .orElse(null)
+            if (profileCache == null) {
+                gameprofile = null;
+            } else {
+                gameprofile = profileCache.get(username).orElse(null); //findByName  .orElse(null)
+            }
         } finally {
             GameProfileCache.setUsesAuthentication(server.isDedicatedServer() && server.usesAuthentication());
         }
@@ -82,27 +102,36 @@ public class FakePlayer extends ServerPlayer {
         }
         GameProfile finalGP = gameprofile;
         float yaw = facing.y, pitch = facing.x;
-        SkullBlockEntity.fetchGameProfile(gameprofile.getName()).thenAcceptAsync(p -> {
-            GameProfile current = finalGP;
-            if (p.isPresent()) {
-                current = p.get();
-            }
-            FakePlayer instance = new FakePlayer(server, level, current, ClientInformation.createDefault(), false);
-            instance.fixStartingPosition = () -> instance.moveTo(pos.x, pos.y, pos.z, yaw, pitch);
-            //noinspection deprecation
-            server.getPlayerList().placeNewPlayer(new FakeClientConnection(PacketFlow.SERVERBOUND), instance, new CommonListenerCookie(current, 0, instance.clientInformation(), false));
-            instance.teleportTo(level, pos.x, pos.y, pos.z, yaw, pitch);
-            instance.setHealth(20.0F);
-            instance.unsetRemoved();
-            AttributeInstance attribute = instance.getAttribute(Attributes.STEP_HEIGHT);
-            if (attribute != null) attribute.setBaseValue(0.6F);
-            instance.gameMode.changeGameModeForPlayer(gamemode);
-            server.getPlayerList().broadcastAll(new ClientboundRotateHeadPacket(instance, (byte) (instance.yHeadRot * 256 / 360)), level.dimension());
-            server.getPlayerList().broadcastAll(new ClientboundTeleportEntityPacket(instance), level.dimension());
-            instance.entityData.set(DATA_PLAYER_MODE_CUSTOMISATION, (byte) 0x7f);
-            callback.accept(instance);
-            instance.getAbilities().flying = flying && instance.getAbilities().mayfly;
-        }, server);
+        SkullBlockEntity.fetchGameProfile(gameprofile.getName()).thenAcceptAsync(
+            p -> {
+                GameProfile current = finalGP;
+                if (p.isPresent()) {
+                    current = p.get();
+                }
+                FakePlayer instance = new FakePlayer(server, level, current, ClientInformation.createDefault(), false);
+                instance.fixStartingPosition = () -> instance.snapTo(pos.x, pos.y, pos.z, yaw, pitch);
+                //noinspection deprecation
+                server.getPlayerList().placeNewPlayer(
+                    new FakeClientConnection(PacketFlow.SERVERBOUND),
+                    instance,
+                    new CommonListenerCookie(current, 0, instance.clientInformation(), false)
+                );
+                instance.teleportTo(level, pos.x, pos.y, pos.z, Set.of(), yaw, pitch, true);
+                instance.setHealth(20.0F);
+                instance.unsetRemoved();
+                AttributeInstance attribute = instance.getAttribute(Attributes.STEP_HEIGHT);
+                if (attribute != null) attribute.setBaseValue(0.6F);
+                instance.gameMode.changeGameModeForPlayer(gamemode);
+                server.getPlayerList()
+                    .broadcastAll(new ClientboundRotateHeadPacket(instance, (byte) (instance.yHeadRot * 256 / 360)), level.dimension());
+                server.getPlayerList().broadcastAll(new ClientboundRotateHeadPacket(instance, (byte)((int)(instance.yHeadRot * 256.0F / 360.0F))), level.dimension());
+                server.getPlayerList().broadcastAll(ClientboundEntityPositionSyncPacket.of(instance),  level.dimension());
+                instance.entityData.set(DATA_PLAYER_MODE_CUSTOMISATION, (byte) 0x7f);
+                callback.accept(instance);
+                //noinspection deprecation
+                instance.getAbilities().flying = flying && instance.getAbilities().mayfly;
+            }, server
+        );
         return true;
     }
 
@@ -112,13 +141,17 @@ public class FakePlayer extends ServerPlayer {
         if (server == null) throw new IllegalStateException("Server is null");
         server.getPlayerList().remove(player);
         player.connection.disconnect(Component.translatable("multiplayer.disconnect.duplicate_login"));
-        ServerLevel worldIn = player.serverLevel();//.getWorld(player.dimension);
+        ServerLevel worldIn = player.level();//.getWorld(player.dimension);
         GameProfile gameprofile = player.getGameProfile();
         FakePlayer playerShadow = FakePlayer.create(server, worldIn, gameprofile, player.clientInformation(), true);
         RemoteChatSession session = player.getChatSession();
         if (session != null) playerShadow.setChatSession(session);
         //noinspection deprecation
-        server.getPlayerList().placeNewPlayer(new FakeClientConnection(PacketFlow.SERVERBOUND), playerShadow, new CommonListenerCookie(gameprofile, 0, player.clientInformation(), true));
+        server.getPlayerList().placeNewPlayer(
+            new FakeClientConnection(PacketFlow.SERVERBOUND),
+            playerShadow,
+            new CommonListenerCookie(gameprofile, 0, player.clientInformation(), true)
+        );
         playerShadow.setHealth(player.getHealth());
         playerShadow.connection.teleport(player.getX(), player.getY(), player.getZ(), player.getYRot(), player.getXRot());
         playerShadow.gameMode.changeGameModeForPlayer(player.gameMode.getGameModeForPlayer());
@@ -127,19 +160,30 @@ public class FakePlayer extends ServerPlayer {
         if (attribute != null) attribute.setBaseValue(0.6F);
         playerShadow.entityData.set(DATA_PLAYER_MODE_CUSTOMISATION, player.getEntityData().get(DATA_PLAYER_MODE_CUSTOMISATION));
         //noinspection resource
-        server.getPlayerList().broadcastAll(new ClientboundRotateHeadPacket(playerShadow, (byte) (player.yHeadRot * 256 / 360)), playerShadow.level().dimension());
-        server.getPlayerList().broadcastAll(new ClientboundPlayerInfoUpdatePacket(ClientboundPlayerInfoUpdatePacket.Action.ADD_PLAYER, playerShadow));
+        server.getPlayerList()
+            .broadcastAll(
+                new ClientboundRotateHeadPacket(playerShadow, (byte) (player.yHeadRot * 256 / 360)),
+                playerShadow.level().dimension()
+            );
+        server.getPlayerList()
+            .broadcastAll(new ClientboundPlayerInfoUpdatePacket(ClientboundPlayerInfoUpdatePacket.Action.ADD_PLAYER, playerShadow));
         playerShadow.getAbilities().flying = player.getAbilities().flying;
         return playerShadow;
     }
 
-    public static @NotNull FakePlayer create(MinecraftServer server, ServerLevel level, GameProfile gameProfile, ClientInformation clientInformation, boolean shadow) {
+    public static @NotNull FakePlayer create(
+        MinecraftServer server,
+        ServerLevel level,
+        GameProfile gameProfile,
+        ClientInformation clientInformation,
+        boolean shadow
+    ) {
         return new FakePlayer(server, level, gameProfile, clientInformation, shadow);
     }
 
     @SuppressWarnings("unused")
     public boolean isShadow() {
-        return shadow;
+        return this.shadow;
     }
 
     @Override
@@ -147,9 +191,8 @@ public class FakePlayer extends ServerPlayer {
         if (!this.isUsingItem()) super.onEquipItem(slot, oldItem, newItem);
     }
 
-    @Override
     public void kill() {
-        kill(Component.literal("Killed"));
+        this.kill(Component.literal("Killed"));
     }
 
     public void kill(@NotNull Component reason) {
@@ -157,7 +200,12 @@ public class FakePlayer extends ServerPlayer {
         if (reason.getContents() instanceof TranslatableContents text && text.getKey().equals("multiplayer.disconnect.duplicate_login")) {
             this.connection.onDisconnect(new DisconnectionDetails(reason));
         } else {
-            this.server.tell(new TickTask(this.server.getTickCount(), () -> this.connection.onDisconnect(new DisconnectionDetails(reason))));
+            if (this.getServer() == null) return;
+            this.getServer()
+                .schedule(new TickTask(
+                    this.getServer().getTickCount(),
+                    () -> this.connection.onDisconnect(new DisconnectionDetails(reason))
+                ));
         }
     }
 
@@ -168,7 +216,7 @@ public class FakePlayer extends ServerPlayer {
         if (server1.getTickCount() % 10 == 0) {
             this.connection.resetPosition();
             //noinspection resource
-            this.serverLevel().getChunkSource().move(this);
+            this.level().getChunkSource().move(this);
         }
         try {
             super.tick();
@@ -220,8 +268,8 @@ public class FakePlayer extends ServerPlayer {
     }
 
     @Override
-    public Entity changeDimension(@NotNull DimensionTransition serverLevel) {
-        super.changeDimension(serverLevel);
+    public ServerPlayer teleport(@NotNull TeleportTransition serverLevel) {
+        super.teleport(serverLevel);
         if (wonGame) {
             ServerboundClientCommandPacket p = new ServerboundClientCommandPacket(ServerboundClientCommandPacket.Action.PERFORM_RESPAWN);
             connection.handleClientCommand(p);
@@ -235,4 +283,8 @@ public class FakePlayer extends ServerPlayer {
         return connection.player;
     }
 
+    @Override
+    public void hasChangedDimension() {
+        super.hasChangedDimension();
+    }
 }

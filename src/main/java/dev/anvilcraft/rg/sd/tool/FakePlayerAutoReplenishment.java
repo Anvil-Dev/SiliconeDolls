@@ -10,7 +10,7 @@ import org.jetbrains.annotations.NotNull;
 
 public class FakePlayerAutoReplenishment {
     public static void autoReplenishment(@NotNull Player fakePlayer) {
-        NonNullList<ItemStack> itemStackList = fakePlayer.getInventory().items;
+        NonNullList<ItemStack> itemStackList = fakePlayer.getInventory().getNonEquipmentItems();
         replenishment(fakePlayer.getMainHandItem(), itemStackList);
         replenishment(fakePlayer.getOffhandItem(), itemStackList);
     }
