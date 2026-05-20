@@ -30,6 +30,6 @@ side = "BOTH"
 [[dependencies."${mod_id}"]]
 modId = "rolling_gate"
 type = "required"
-versionRange = "[${rolling_gate_version},)"
+versionRange = "[1.1.0,)"
 ordering = "NONE"
 side = "BOTH"
