@@ -19,7 +19,8 @@
     "SlotMixin",
     "combat.AquaFishingBobberEntityMixin",
     "combat.PacketDistributorMixin",
-    "combat.ServerCommonPacketListenerImplMixin"
+    "combat.ServerCommonPacketListenerImplMixin",
+    "combat.SpectrumFishingHookMixin"
   ],
   "client": [
   ],
