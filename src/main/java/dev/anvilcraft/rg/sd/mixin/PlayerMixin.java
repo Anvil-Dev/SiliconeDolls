@@ -11,7 +11,7 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 @Mixin(Player.class)
 abstract class PlayerMixin {
     @Redirect(
-        method = "attack",
+        method = "attack(Lnet/minecraft/world/entity/Entity;)V",
         at = @At(
             value = "FIELD",
             target = "Lnet/minecraft/world/entity/Entity;hurtMarked:Z",
