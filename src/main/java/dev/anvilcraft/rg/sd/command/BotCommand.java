@@ -17,7 +17,6 @@ import dev.anvilcraft.rg.sd.entity.FakePlayer;
 import dev.anvilcraft.rg.sd.entity.PlayerActionPack;
 import dev.anvilcraft.rg.sd.init.ModCommands;
 import dev.anvilcraft.rg.sd.mixin.EntityInvoker;
-import dev.anvilcraft.rg.sd.mixin.PlayerAccessor;
 import dev.anvilcraft.rg.sd.util.IServerPlayerInjector;
 import dev.anvilcraft.rg.tools.FilesUtil;
 import net.minecraft.ChatFormatting;
@@ -267,7 +266,6 @@ public class BotCommand {
                         ClientboundPlayerInfoUpdatePacket.Action.ADD_PLAYER,
                         instance
                     ));
-                instance.getEntityData().set(PlayerAccessor.getCustomisationData(), (byte) 127);
                 instance.getAbilities().flying = botInfo.flying;
                 PlayerActionPack actionPack = botInfo.actions;
                 ((IServerPlayerInjector) instance).getActionPack().copyFrom(actionPack);

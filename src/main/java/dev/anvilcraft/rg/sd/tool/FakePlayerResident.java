@@ -9,7 +9,6 @@ import dev.anvilcraft.rg.sd.entity.FakeClientConnection;
 import dev.anvilcraft.rg.sd.entity.FakePlayer;
 import dev.anvilcraft.rg.sd.entity.PlayerActionPack;
 import dev.anvilcraft.rg.sd.mixin.EntityInvoker;
-import dev.anvilcraft.rg.sd.mixin.PlayerAccessor;
 import dev.anvilcraft.rg.sd.util.IServerPlayerInjector;
 import net.minecraft.core.UUIDUtil;
 import net.minecraft.network.protocol.PacketFlow;
@@ -64,7 +63,6 @@ public class FakePlayerResident {
                     level.dimension()
                 );
             server.getPlayerList().broadcastAll(ClientboundEntityPositionSyncPacket.of(playerMPFake), level.dimension());
-            playerMPFake.getEntityData().set(PlayerAccessor.getCustomisationData(), (byte) 127);
             PlayerActionPack actionPack = SiliconeDolls.GSON.fromJson(actions, PlayerActionPack.class);
             ((IServerPlayerInjector) playerMPFake).getActionPack().copyFrom(actionPack);
             ((EntityInvoker) playerMPFake).invokerUnsetRemoved();

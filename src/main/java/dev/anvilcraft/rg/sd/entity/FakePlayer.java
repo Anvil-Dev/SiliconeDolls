@@ -140,7 +140,6 @@ public class FakePlayer extends ServerPlayer {
         ((IServerPlayerInjector) playerShadow).getActionPack().copyFrom(((IServerPlayerInjector) player).getActionPack());
         AttributeInstance attribute = playerShadow.getAttribute(Attributes.STEP_HEIGHT);
         if (attribute != null) attribute.setBaseValue(0.6F);
-        playerShadow.entityData.set(DATA_PLAYER_MODE_CUSTOMISATION, player.getEntityData().get(DATA_PLAYER_MODE_CUSTOMISATION));
         //noinspection resource
         server.getPlayerList()
             .broadcastAll(

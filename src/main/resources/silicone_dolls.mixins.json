@@ -9,7 +9,6 @@
     "EntityInvoker",
     "FishingHookMixin",
     "ItemStackMixin",
-    "PlayerAccessor",
     "PlayerListMixin",
     "PlayerMixin",
     "ServerConfigurationPacketListenerImplMixin",
