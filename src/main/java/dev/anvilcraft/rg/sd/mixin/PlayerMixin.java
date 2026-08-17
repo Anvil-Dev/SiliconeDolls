@@ -16,7 +16,8 @@ abstract class PlayerMixin {
             value = "FIELD",
             target = "Lnet/minecraft/world/entity/Entity;hurtMarked:Z",
             ordinal = 0
-        )
+        ),
+        require = 0
     )
     private boolean attack(@NotNull Entity target) {
         return target.hurtMarked && !(target instanceof FakePlayer);
