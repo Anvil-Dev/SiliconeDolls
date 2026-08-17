@@ -62,7 +62,7 @@ jobs:
           path: build/libs/${{ steps.properties.outputs.mod_name }}-neoforge-${{ steps.properties.outputs.minecraft_version }}-${{ steps.version.outputs.version }}.jar
 
       - name: gametest
-        uses: Anvil-Dev/dedicated-server-launch-test@1.21.10-neoforge
+        uses: Anvil-Dev/dedicated-server-launch-test@26.1.2-neoforge
         with:
           mod: build/libs/${{ steps.properties.outputs.mod_name }}-neoforge-${{ steps.properties.outputs.minecraft_version }}-${{ steps.version.outputs.version }}.jar
           extra-mods: rolling-gate:${{ steps.properties.outputs.rolling_gate_version }}

@@ -69,7 +69,7 @@ public class PlayerCommand {
                                                                     .executes(PlayerCommand::spawnPlayer)
                                                                     .then(
                                                                         Commands.literal("in")
-                                                                            .requires(source -> source.hasPermission(Commands.LEVEL_GAMEMASTERS))
+                                                                            .requires(source -> Commands.LEVEL_GAMEMASTERS.check(source.permissions()))
                                                                             .then(
                                                                                 Commands.argument("gamemode", GameModeArgument.gameMode())
                                                                                     .executes(PlayerCommand::spawnPlayer)
@@ -290,7 +290,7 @@ public class PlayerCommand {
         if (player == null) return 0;
         if (player instanceof FakePlayer) return 0;
         CommandSourceStack source = context.getSource();
-        boolean isOp = source.hasPermission(Commands.LEVEL_GAMEMASTERS);
+        boolean isOp = Commands.LEVEL_GAMEMASTERS.check(source.permissions());
         Entity entity = source.getEntity();
         boolean isSelf = entity == player;
         if (!isOp && !isSelf) {
@@ -525,7 +525,7 @@ public class PlayerCommand {
         if (player == null) return null;
         if (player instanceof FakePlayer fakePlayer) return fakePlayer;
         CommandSourceStack stack = context.getSource();
-        if (stack.hasPermission(Commands.LEVEL_GAMEMASTERS)) return player;
+        if (Commands.LEVEL_GAMEMASTERS.check(stack.permissions())) return player;
         if (stack.getPlayer() == player) return player;
         stack.sendFailure(TranslationUtil.trans("silicone_dolls.commands.tips.no_permission", player.getName().getString()).withStyle(ChatFormatting.RED));
         return null;

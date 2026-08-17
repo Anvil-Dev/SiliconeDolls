@@ -7,7 +7,7 @@ import dev.anvilcraft.rg.sd.entity.PlayerActionPack;
 import dev.anvilcraft.rg.tools.DimTypeSerializer;
 import dev.anvilcraft.rg.tools.ResourceLocationSerializer;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
@@ -19,7 +19,7 @@ public class SiliconeDolls {
     public static final Gson GSON = new GsonBuilder()
         .setPrettyPrinting()
         .registerTypeHierarchyAdapter(ResourceKey.class, new DimTypeSerializer())
-        .registerTypeHierarchyAdapter(ResourceLocation.class, new ResourceLocationSerializer())
+        .registerTypeHierarchyAdapter(Identifier.class, new ResourceLocationSerializer())
         .registerTypeHierarchyAdapter(PlayerActionPack.class, new PlayerActionPack.Serializer())
         .registerTypeHierarchyAdapter(PlayerActionPack.Action.class, new PlayerActionPack.Action.Serializer())
         .create();

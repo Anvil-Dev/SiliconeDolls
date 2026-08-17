@@ -66,7 +66,7 @@ public class ModelCommand {
         String modelId = StringArgumentType.getString(context, "model_id");
         String textureId = StringArgumentType.getString(context, "texture_id");
         server.getCommands().performPrefixedCommand(
-            context.getSource().withPermission(2),
+            context.getSource().withPermission(net.minecraft.server.permissions.LevelBasedPermissionSet.GAMEMASTER),
             "ysm model set %s \"%s\" \"%s\"".formatted(player.getGameProfile().name(), modelId, textureId)
         );
         return 1;
