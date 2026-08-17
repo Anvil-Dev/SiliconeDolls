@@ -1,5 +1,13 @@
 dependencies {
     // Rolling Gate
     implementation "dev.anvilcraft.rg:RollingGate:${rolling_gate_version}"
+
+    // Mod Compat
+    // AquaCulture 2
     implementation "com.teammetallurgy.aquaculture:aquaculture2_${minecraft_version}:${minecraft_version}-${aquaculture_version}"
+    // Spectrum
+    implementation "maven.modrinth:spectrum:${spectrum_version}"
+    implementation "maven.modrinth:revelationary:${revelationary_version}"
+    implementation "maven.modrinth:curios:${curios_version}"
+    implementation "maven.modrinth:modonomicon:${modonomicon_version}"
 }
