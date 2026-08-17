@@ -54,7 +54,7 @@ public class EventListeners {
     public static void onPlayerTick(@NotNull PlayerTickEvent.Post event) {
         Player player = event.getEntity();
         //noinspection resource
-        if (player.level().isClientSide) {
+        if (player.level().isClientSide()) {
             if (player.containerMenu instanceof IClientMenuTickInjector tick) {
                 tick.siliconeDolls$tick();
             }
@@ -117,7 +117,7 @@ public class EventListeners {
                     tag = valueOutput.buildResult();
                 }
                 if (tag.contains("rolling_gate.NoResident")) return;
-                String username = player.getGameProfile().getName();
+                String username = player.getGameProfile().name();
                 fakePlayerList.add(username, FakePlayerResident.save(player));
             });
             File file = server.getWorldPath(LevelResource.ROOT).resolve("fake_player.rg.json").toFile();

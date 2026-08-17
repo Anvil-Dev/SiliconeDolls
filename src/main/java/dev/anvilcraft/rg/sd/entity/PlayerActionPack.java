@@ -203,7 +203,7 @@ public class PlayerActionPack {
         if (closest instanceof AbstractHorse && onlyRideables) {
             ((AbstractHorse) closest).mobInteract(player, InteractionHand.MAIN_HAND);
         } else {
-            player.startRiding(closest, true);
+            player.startRiding(closest);
         }
         return this;
     }

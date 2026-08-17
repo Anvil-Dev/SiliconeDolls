@@ -38,12 +38,10 @@ import net.minecraft.server.level.ClientInformation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.network.CommonListenerCookie;
-import net.minecraft.server.players.GameProfileCache;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.entity.SkullBlockEntity;
 import net.minecraft.world.phys.Vec2;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.network.connection.ConnectionType;
@@ -225,70 +223,56 @@ public class BotCommand {
         boolean success = false;
         try {
             ServerLevel worldIn = BOT_INFO.server.getLevel(botInfo.dimType);
-            GameProfileCache.setUsesAuthentication(false);
-            GameProfile gameprofile;
-            try {
-                GameProfileCache profileCache = BOT_INFO.server.getProfileCache();
-                if (profileCache == null) {
-                    gameprofile = null;
-                } else {
-                    gameprofile = profileCache.get(name).orElse(null);
-                }
-                if (gameprofile == null) {
-                    if (!SiliconeDollsServerRules.allowSpawningOfflinePlayers) return false;
-                    gameprofile = new GameProfile(UUIDUtil.createOfflinePlayerUUID(name), name);
-                }
-                GameProfile finalGP = gameprofile;
-                SkullBlockEntity.fetchGameProfile(gameprofile.getName()).thenAcceptAsync(
-                    (p) -> {
-                        GameProfile current = finalGP;
-                        if (p.isPresent()) current = p.get();
-                        if (worldIn == null) return;
-                        FakePlayer instance = FakePlayer.create(
-                            BOT_INFO.server,
-                            worldIn,
-                            current,
-                            ClientInformation.createDefault(),
-                            false
-                        );
-                        instance.fixStartingPosition = () -> instance.snapTo(
-                            botInfo.pos.x,
-                            botInfo.pos.y,
-                            botInfo.pos.z,
-                            botInfo.facing.y,
-                            botInfo.facing.x
-                        );
-                        BOT_INFO.server.getPlayerList().placeNewPlayer(
-                            new FakeClientConnection(PacketFlow.SERVERBOUND),
-                            instance,
-                            new CommonListenerCookie(current, 0, instance.clientInformation(), false, ConnectionType.OTHER)
-                        );
-                        instance.connection.teleport(botInfo.pos.x, botInfo.pos.y, botInfo.pos.z, botInfo.facing.y, botInfo.facing.x);
-                        instance.setHealth(20.0F);
-                        ((EntityInvoker) instance).invokerUnsetRemoved();
-                        AttributeInstance attribute = instance.getAttribute(Attributes.STEP_HEIGHT);
-                        if (attribute != null) attribute.setBaseValue(0.6000000238418579);
-                        instance.gameMode.changeGameModeForPlayer(botInfo.mode);
-                        BOT_INFO.server.getPlayerList()
-                            .broadcastAll(
-                                new ClientboundRotateHeadPacket(instance, (byte) (instance.yHeadRot * 256 / 360)),
-                                botInfo.dimType
-                            );
-                        BOT_INFO.server.getPlayerList()
-                            .broadcastAll(new ClientboundPlayerInfoUpdatePacket(
-                                ClientboundPlayerInfoUpdatePacket.Action.ADD_PLAYER,
-                                instance
-                            ));
-                        instance.getEntityData().set(PlayerAccessor.getCustomisationData(), (byte) 127);
-                        instance.getAbilities().flying = botInfo.flying;
-                        PlayerActionPack actionPack = botInfo.actions;
-                        ((IServerPlayerInjector) instance).getActionPack().copyFrom(actionPack);
-                    }, BOT_INFO.server
-                );
-                success = true;
-            } finally {
-                GameProfileCache.setUsesAuthentication(BOT_INFO.server.isDedicatedServer() && BOT_INFO.server.usesAuthentication());
+            GameProfile gameprofile = BOT_INFO.server.services().profileResolver().fetchByName(name).orElse(null);
+            if (gameprofile == null) {
+                if (!SiliconeDollsServerRules.allowSpawningOfflinePlayers) return false;
+                gameprofile = new GameProfile(UUIDUtil.createOfflinePlayerUUID(name), name);
             }
+            GameProfile finalGP = gameprofile;
+            BOT_INFO.server.execute(() -> {
+                GameProfile current = finalGP;
+                if (worldIn == null) return;
+                FakePlayer instance = FakePlayer.create(
+                    BOT_INFO.server,
+                    worldIn,
+                    current,
+                    ClientInformation.createDefault(),
+                    false
+                );
+                instance.fixStartingPosition = () -> instance.snapTo(
+                    botInfo.pos.x,
+                    botInfo.pos.y,
+                    botInfo.pos.z,
+                    botInfo.facing.y,
+                    botInfo.facing.x
+                );
+                BOT_INFO.server.getPlayerList().placeNewPlayer(
+                    new FakeClientConnection(PacketFlow.SERVERBOUND),
+                    instance,
+                    new CommonListenerCookie(current, 0, instance.clientInformation(), false, ConnectionType.OTHER)
+                );
+                instance.connection.teleport(botInfo.pos.x, botInfo.pos.y, botInfo.pos.z, botInfo.facing.y, botInfo.facing.x);
+                instance.setHealth(20.0F);
+                ((EntityInvoker) instance).invokerUnsetRemoved();
+                AttributeInstance attribute = instance.getAttribute(Attributes.STEP_HEIGHT);
+                if (attribute != null) attribute.setBaseValue(0.6000000238418579);
+                instance.gameMode.changeGameModeForPlayer(botInfo.mode);
+                BOT_INFO.server.getPlayerList()
+                    .broadcastAll(
+                        new ClientboundRotateHeadPacket(instance, (byte) (instance.yHeadRot * 256 / 360)),
+                        botInfo.dimType
+                    );
+                BOT_INFO.server.getPlayerList()
+                    .broadcastAll(new ClientboundPlayerInfoUpdatePacket(
+                        ClientboundPlayerInfoUpdatePacket.Action.ADD_PLAYER,
+                        instance
+                    ));
+                instance.getEntityData().set(PlayerAccessor.getCustomisationData(), (byte) 127);
+                instance.getAbilities().flying = botInfo.flying;
+                PlayerActionPack actionPack = botInfo.actions;
+                ((IServerPlayerInjector) instance).getActionPack().copyFrom(actionPack);
+            });
+            success = true;
         } catch (Exception e) {
             SiliconeDolls.LOGGER.error(e.getMessage(), e);
         }
@@ -310,10 +294,10 @@ public class BotCommand {
         CommandSourceStack source = context.getSource();
         ServerPlayer p;
         if (!((p = EntityArgument.getPlayer(context, "player")) instanceof FakePlayer player)) {
-            source.sendFailure(TranslationUtil.trans("silicone_dolls.commands.tips.not_fake", p.getGameProfile().getName()));
+            source.sendFailure(TranslationUtil.trans("silicone_dolls.commands.tips.not_fake", p.getGameProfile().name()));
             return 0;
         }
-        String name = player.getGameProfile().getName();
+        String name = player.getGameProfile().name();
         if (BOT_INFO.map.containsKey(name)) {
             source.sendFailure(TranslationUtil.trans("silicone_dolls.commands.tips.already_save", name));
             return 0;

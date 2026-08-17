@@ -29,7 +29,7 @@ public abstract class ServerCommonPacketListenerImplMixin {
         at = @At("HEAD"), cancellable = true
     )
     private void send(Packet<?> packet, ChannelFutureListener sendListener, CallbackInfo ci) {
-        ServerPlayer player = this.server.getPlayerList().getPlayer(this.getOwner().getId());
+        ServerPlayer player = this.server.getPlayerList().getPlayer(this.getOwner().id());
         if (player instanceof FakePlayer) ci.cancel();
     }
 }

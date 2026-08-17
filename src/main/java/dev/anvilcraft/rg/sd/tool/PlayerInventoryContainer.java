@@ -127,11 +127,6 @@ public class PlayerInventoryContainer extends PlayerContainer {
     }
 
     @Override
-    public void startOpen(@NotNull Player player) {
-        super.startOpen(player);
-    }
-
-    @Override
     public void tick() {
         super.tick();
         List<Button> buttonList = this.hotbar.getButtons();

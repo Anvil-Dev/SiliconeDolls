@@ -20,7 +20,6 @@ import net.minecraft.server.level.ClientInformation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.network.CommonListenerCookie;
-import net.minecraft.server.players.GameProfileCache;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EquipmentSlot;
@@ -30,7 +29,6 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.food.FoodData;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.GameType;
-import net.minecraft.world.level.block.entity.SkullBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.portal.TeleportTransition;
 import net.minecraft.world.phys.Vec2;
@@ -81,18 +79,7 @@ public class FakePlayer extends ServerPlayer {
         boolean flying,
         @NotNull Consumer<FakePlayer> callback
     ) {
-        GameProfileCache.setUsesAuthentication(false);
-        GameProfile gameprofile;
-        try {
-            GameProfileCache profileCache = server.getProfileCache();
-            if (profileCache == null) {
-                gameprofile = null;
-            } else {
-                gameprofile = profileCache.get(username).orElse(null); //findByName  .orElse(null)
-            }
-        } finally {
-            GameProfileCache.setUsesAuthentication(server.isDedicatedServer() && server.usesAuthentication());
-        }
+        GameProfile gameprofile = server.services().profileResolver().fetchByName(username).orElse(null);
         if (gameprofile == null) {
             if (!SiliconeDollsServerRules.allowSpawningOfflinePlayers) {
                 return false;
@@ -102,42 +89,37 @@ public class FakePlayer extends ServerPlayer {
         }
         GameProfile finalGP = gameprofile;
         float yaw = facing.y, pitch = facing.x;
-        SkullBlockEntity.fetchGameProfile(gameprofile.getName()).thenAcceptAsync(
-            p -> {
-                GameProfile current = finalGP;
-                if (p.isPresent()) {
-                    current = p.get();
-                }
-                FakePlayer instance = new FakePlayer(server, level, current, ClientInformation.createDefault(), false);
-                instance.fixStartingPosition = () -> instance.snapTo(pos.x, pos.y, pos.z, yaw, pitch);
-                //noinspection deprecation
-                server.getPlayerList().placeNewPlayer(
-                    new FakeClientConnection(PacketFlow.SERVERBOUND),
-                    instance,
-                    new CommonListenerCookie(current, 0, instance.clientInformation(), false)
-                );
-                instance.teleportTo(level, pos.x, pos.y, pos.z, Set.of(), yaw, pitch, true);
-                instance.setHealth(20.0F);
-                instance.unsetRemoved();
-                AttributeInstance attribute = instance.getAttribute(Attributes.STEP_HEIGHT);
-                if (attribute != null) attribute.setBaseValue(0.6F);
-                instance.gameMode.changeGameModeForPlayer(gamemode);
-                server.getPlayerList()
-                    .broadcastAll(new ClientboundRotateHeadPacket(instance, (byte) (instance.yHeadRot * 256 / 360)), level.dimension());
-                server.getPlayerList().broadcastAll(new ClientboundRotateHeadPacket(instance, (byte)((int)(instance.yHeadRot * 256.0F / 360.0F))), level.dimension());
-                server.getPlayerList().broadcastAll(ClientboundEntityPositionSyncPacket.of(instance),  level.dimension());
-                instance.entityData.set(DATA_PLAYER_MODE_CUSTOMISATION, (byte) 0x7f);
-                callback.accept(instance);
-                //noinspection deprecation
-                instance.getAbilities().flying = flying && instance.getAbilities().mayfly;
-            }, server
-        );
+        server.execute(() -> {
+            GameProfile current = finalGP;
+            FakePlayer instance = new FakePlayer(server, level, current, ClientInformation.createDefault(), false);
+            instance.fixStartingPosition = () -> instance.snapTo(pos.x, pos.y, pos.z, yaw, pitch);
+            //noinspection deprecation
+            server.getPlayerList().placeNewPlayer(
+                new FakeClientConnection(PacketFlow.SERVERBOUND),
+                instance,
+                new CommonListenerCookie(current, 0, instance.clientInformation(), false)
+            );
+            instance.teleportTo(level, pos.x, pos.y, pos.z, Set.of(), yaw, pitch, true);
+            instance.setHealth(20.0F);
+            instance.unsetRemoved();
+            AttributeInstance attribute = instance.getAttribute(Attributes.STEP_HEIGHT);
+            if (attribute != null) attribute.setBaseValue(0.6F);
+            instance.gameMode.changeGameModeForPlayer(gamemode);
+            server.getPlayerList()
+                .broadcastAll(new ClientboundRotateHeadPacket(instance, (byte) (instance.yHeadRot * 256 / 360)), level.dimension());
+            server.getPlayerList().broadcastAll(new ClientboundRotateHeadPacket(instance, (byte)((int)(instance.yHeadRot * 256.0F / 360.0F))), level.dimension());
+            server.getPlayerList().broadcastAll(ClientboundEntityPositionSyncPacket.of(instance),  level.dimension());
+            instance.entityData.set(DATA_PLAYER_MODE_CUSTOMISATION, (byte) 0x7f);
+            callback.accept(instance);
+            //noinspection deprecation
+            instance.getAbilities().flying = flying && instance.getAbilities().mayfly;
+        });
         return true;
     }
 
     @SuppressWarnings("UnusedReturnValue")
     public static @NotNull FakePlayer createShadow(@NotNull ServerPlayer player) {
-        MinecraftServer server = player.getServer();
+        MinecraftServer server = player.level().getServer();
         if (server == null) throw new IllegalStateException("Server is null");
         server.getPlayerList().remove(player);
         player.connection.disconnect(Component.translatable("multiplayer.disconnect.duplicate_login"));
@@ -200,10 +182,10 @@ public class FakePlayer extends ServerPlayer {
         if (reason.getContents() instanceof TranslatableContents text && text.getKey().equals("multiplayer.disconnect.duplicate_login")) {
             this.connection.onDisconnect(new DisconnectionDetails(reason));
         } else {
-            if (this.getServer() == null) return;
-            this.getServer()
+            if (this.level().getServer() == null) return;
+            this.level().getServer()
                 .schedule(new TickTask(
-                    this.getServer().getTickCount(),
+                    this.level().getServer().getTickCount(),
                     () -> this.connection.onDisconnect(new DisconnectionDetails(reason))
                 ));
         }
@@ -211,7 +193,7 @@ public class FakePlayer extends ServerPlayer {
 
     @Override
     public void tick() {
-        MinecraftServer server1 = this.getServer();
+        MinecraftServer server1 = this.level().getServer();
         if (server1 == null) return;
         if (server1.getTickCount() % 10 == 0) {
             this.connection.resetPosition();
