@@ -24,9 +24,13 @@ final class SableCompatRuntime {
         Boolean.getBoolean("silicone_dolls.riding_debug") || Boolean.getBoolean("silicone_dolls.ridingDebug");
 
     /**
-     * Last deck motion per rider. While riding, Sable already applies this delta to the
-     * position every tick; remembering it lets us hand the momentum back once the rider
-     * leaves the deck (jumping off a moving ship should throw you forward).
+     * Last deck motion per rider while tracking. Kept only for book-keeping /
+     * debugging (e.g. double-acceleration detection). No longer used to inject
+     * an extra impulse on leave — inertia is already provided by Sable's
+     * {@code sable$inheritedVelocity} (velocityMotion + 0.99 drag), which is
+     * exactly enough to keep a vertical jump stationary relative to a fast deck.
+     * Adding another copy here would double the deck delta and launch the doll
+     * forward off the platform.
      */
     private static final java.util.Map<Entity, Vector3d> LAST_DECK_MOTION =
         java.util.Collections.synchronizedMap(new java.util.WeakHashMap<>());
@@ -46,9 +50,6 @@ final class SableCompatRuntime {
             ext.sable$setTrackingSubLevel(null);
             tracking = null;
         }
-
-        var inheritedExt = (LivingEntityMovementExtension) player;
-        Vector3d inheritedVelocity = inheritedExt.sable$getInheritedVelocity();
 
         if (tracking != null) {
             // The deck's motion reaches a rider through TWO independent paths:
@@ -84,11 +85,15 @@ final class SableCompatRuntime {
                 }
             }
         } else {
-            // left the deck: return the deck's momentum once (throw inertia)
-            Vector3d stored = LAST_DECK_MOTION.remove(player);
-            if (stored != null && stored.lengthSquared() > 1.0E-6) {
-                player.addDeltaMovement(new net.minecraft.world.phys.Vec3(stored.x, stored.y, stored.z));
-            }
+            // 离开平台：不再以 addDeltaMovement 一次性返还甲板动量。
+            // 原因：Sable 的 LivingEntityMixin 已在 travel() 尾将甲板位移存入
+            // sable$inheritedVelocity，并在后续 tick 以 velocityMotion 形式
+            // 带 0.99（空中）/0.7（地面）拖拽持续施加，这一份就是保持
+            // “高速平台上原地跳跃仍与甲板相对静止”所需的惯性。之前在此处
+            // 再 addDeltaMovement(stored) 等于在 inheritedVelocity 之外又叠
+            // 加一份 deckDelta（约 0.4 blocks/tick @8m/s），导致垂直跳跃
+            // 瞬间获得二倍速度而向前飞出甲板。改为仅清理记录，不额外注入速度。
+            LAST_DECK_MOTION.remove(player);
         }
 
         // While grazing along a sub-level surface the SAT resolution can miss the shallow
