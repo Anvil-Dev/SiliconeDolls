@@ -31,8 +31,11 @@ public class PlayerEnderChestContainer extends PlayerContainer {
         this.compartments = ImmutableList.of(this.items, this.buttons);
         this.ap = ((IServerPlayerInjector) this.player).getActionPack();
         this.sneakButton = new Button(false, "silicone_dolls.button.action.sneak")
-            .addTurnOnFunction(() -> this.ap.setSneaking(true))
-            .addTurnOffFunction(() -> this.ap.setSneaking(false));
+            .addTurnOnFunction(() -> this.ap.start(PlayerActionPack.ActionType.SNEAK, PlayerActionPack.Action.continuous()))
+            .addTurnOffFunction(() -> {
+                this.ap.start(PlayerActionPack.ActionType.SNEAK, null);
+                this.ap.setSneaking(false);
+            });
         this.jumpButton = new Button(false, "silicone_dolls.button.action.jump_continuous")
             .addTurnOnFunction(() -> this.ap.start(PlayerActionPack.ActionType.JUMP, PlayerActionPack.Action.continuous()))
             .addTurnOffFunction(() -> this.ap.start(PlayerActionPack.ActionType.JUMP, PlayerActionPack.Action.once()));
