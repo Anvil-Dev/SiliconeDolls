@@ -534,6 +534,18 @@ public class PlayerActionPack {
                 player.setItemInHand(InteractionHand.MAIN_HAND, itemStack_1);
                 return false;
             }
+        },
+        SNEAK {
+            @Override
+            boolean execute(ServerPlayer player, Action action) {
+                ((IServerPlayerInjector) player).getActionPack().setSneaking(true);
+                return false;
+            }
+
+            @Override
+            void inactiveTick(ServerPlayer player, Action action) {
+                ((IServerPlayerInjector) player).getActionPack().setSneaking(false);
+            }
         };
 
         abstract boolean execute(ServerPlayer player, Action action);
