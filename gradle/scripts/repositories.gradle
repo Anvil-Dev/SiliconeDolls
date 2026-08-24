@@ -1,6 +1,14 @@
 repositories {
     mavenLocal()
     mavenCentral()
+    maven { // Sable Physics Engine
+        name = "RyanHCode Maven Releases"
+        url = "https://maven.ryanhcode.dev/releases"
+    }
+    maven {
+        name = "RyanHCode Maven Snapshots"
+        url = "https://maven.ryanhcode.dev/snapshots"
+    }
     maven { // CurseForge File
         name = "CurseForge Maven"
         url "https://cursemaven.com"

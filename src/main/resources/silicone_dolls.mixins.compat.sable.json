@@ -1,0 +1,15 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "dev.anvilcraft.rg.sd.compat.sable.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "plugin": "dev.anvilcraft.rg.sd.compat.SableCompatPlugin",
+  "mixins": [
+    "SubLevelEntityCollisionMixin"
+  ],
+  "client": [
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

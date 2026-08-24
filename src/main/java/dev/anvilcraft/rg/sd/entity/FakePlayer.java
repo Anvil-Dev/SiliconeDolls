@@ -2,6 +2,7 @@ package dev.anvilcraft.rg.sd.entity;
 
 import com.mojang.authlib.GameProfile;
 import dev.anvilcraft.rg.sd.SiliconeDollsServerRules;
+import dev.anvilcraft.rg.sd.compat.SableCompat;
 import dev.anvilcraft.rg.sd.util.IServerPlayerInjector;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.UUIDUtil;
@@ -175,6 +176,7 @@ public class FakePlayer extends ServerPlayer {
             this.doTick();
         } catch (NullPointerException ignored) {
         }
+        SableCompat.afterFakePlayerTick(this);
     }
 
     private void shakeOff() {
@@ -217,6 +219,17 @@ public class FakePlayer extends ServerPlayer {
     @Override
     protected void checkFallDamage(double y, boolean onGround, @NotNull BlockState state, @NotNull BlockPos pos) {
         doCheckFallDamage(0.0, y, 0.0, onGround);
+    }
+
+    @Override
+    public @NotNull BlockPos getBlockPosBelowThatAffectsMyMovement() {
+        if (SableCompat.isPresent()) {
+            BlockPos overridden = SableCompat.blockPosBelowThatAffectsMyMovement(this, super.getBlockPosBelowThatAffectsMyMovement());
+            if (overridden != null) {
+                return overridden;
+            }
+        }
+        return super.getBlockPosBelowThatAffectsMyMovement();
     }
 
     @Override
