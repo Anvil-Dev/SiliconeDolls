@@ -20,7 +20,8 @@
     "combat.AquaFishingBobberEntityMixin",
     "combat.PacketDistributorMixin",
     "combat.ServerCommonPacketListenerImplMixin",
-    "combat.SpectrumFishingHookMixin"
+    "combat.SpectrumFishingHookMixin",
+    "compat.CreateContraptionColliderMixin"
   ],
   "client": [
   ],
