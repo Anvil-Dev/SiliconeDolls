@@ -10,4 +10,18 @@ dependencies {
     implementation "maven.modrinth:revelationary:${revelationary_version}"
     implementation "maven.modrinth:curios:${curios_version}"
     implementation "maven.modrinth:modonomicon:${modonomicon_version}"
+
+    // Sable Physics Compat
+    compileOnly "dev.ryanhcode.sable-companion:sable-companion-common-${minecraft_version}:${sable_companion_version}"
+    implementation("foundry.veil:veil-neoforge-${minecraft_version}:${veil_version}") {
+        exclude group: "maven.modrinth"
+    }
+    implementation("dev.ryanhcode.sable:sable-neoforge-${minecraft_version}:${sable_version}") {
+        // Veil is declared explicitly above; keep the dev classpath light by skipping Create & co.
+        exclude group: "foundry.veil"
+        exclude group: "com.tterrag.registrate"
+        exclude group: "com.simibubi.create"
+        exclude group: "net.createmod.ponder"
+        exclude group: "dev.engine-room.flywheel"
+    }
 }
