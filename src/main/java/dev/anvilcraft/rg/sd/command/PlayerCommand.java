@@ -103,11 +103,20 @@ public class PlayerCommand {
             )
             .then(
                 Commands.literal("sneak")
-                    .executes(ctx -> sneak(ctx, true))
+                    .executes(ctx -> sneak(ctx, "continue"))
+                    .then(Commands.literal("once").executes(ctx -> sneak(ctx, "once")))
+                    .then(Commands.literal("continue").executes(ctx -> sneak(ctx, "continue")))
+                    .then(
+                        Commands.literal("interval")
+                            .then(
+                                Commands.argument("time", IntegerArgumentType.integer(1))
+                                    .executes(ctx -> sneak(ctx, "interval"))
+                            )
+                    )
             )
             .then(
                 Commands.literal("unsneak")
-                    .executes(ctx -> sneak(ctx, false))
+                    .executes(PlayerCommand::unsneak)
             )
             .then(
                 Commands.literal("sprint")
@@ -337,11 +346,47 @@ public class PlayerCommand {
         return 1;
     }
 
+    public static int sneak(@NotNull CommandContext<CommandSourceStack> context, String interval) {
+        ServerPlayer player = getPlayerByPermission(context);
+        if (player == null) return 0;
+        PlayerActionPack actionPack = ((IServerPlayerInjector) player).getActionPack();
+        if (interval.equals("interval")) {
+            int time;
+            try {
+                time = IntegerArgumentType.getInteger(context, "time");
+            } catch (IllegalArgumentException ignored) {
+                context.getSource().sendFailure(TranslationUtil.trans("silicone_dolls.commands.tips.invalid_interval").withStyle(ChatFormatting.RED));
+                return 0;
+            }
+            actionPack.start(PlayerActionPack.ActionType.SNEAK, PlayerActionPack.Action.interval(time));
+        } else if (interval.equals("continue") || interval.equals("continues")) {
+            actionPack.start(PlayerActionPack.ActionType.SNEAK, PlayerActionPack.Action.continuous());
+        } else {
+            actionPack.start(PlayerActionPack.ActionType.SNEAK, PlayerActionPack.Action.once());
+        }
+        return 1;
+    }
+
+    public static int unsneak(@NotNull CommandContext<CommandSourceStack> context) {
+        ServerPlayer player = getPlayerByPermission(context);
+        if (player == null) return 0;
+        PlayerActionPack actionPack = ((IServerPlayerInjector) player).getActionPack();
+        actionPack.start(PlayerActionPack.ActionType.SNEAK, null);
+        actionPack.setSneaking(false);
+        return 1;
+    }
+
+    @Deprecated
     public static int sneak(@NotNull CommandContext<CommandSourceStack> context, boolean doSneak) {
         ServerPlayer player = getPlayerByPermission(context);
         if (player == null) return 0;
         PlayerActionPack actionPack = ((IServerPlayerInjector) player).getActionPack();
         actionPack.setSneaking(doSneak);
+        if (doSneak) {
+            actionPack.start(PlayerActionPack.ActionType.SNEAK, PlayerActionPack.Action.continuous());
+        } else {
+            actionPack.start(PlayerActionPack.ActionType.SNEAK, null);
+        }
         return 1;
     }
 
