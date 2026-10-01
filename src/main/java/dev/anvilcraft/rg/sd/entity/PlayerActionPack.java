@@ -19,6 +19,7 @@ import net.minecraft.network.protocol.game.ServerboundPlayerActionPacket;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.Mth;
+import net.minecraft.util.Prediction;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.Entity;
@@ -28,6 +29,7 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.vehicle.boat.Boat;
 import net.minecraft.world.entity.vehicle.minecart.Minecart;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.component.SwingAnimation;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.EntityHitResult;
@@ -257,7 +259,7 @@ public class PlayerActionPack {
     private void dropItemFromSlot(int slot, boolean dropAll) {
         Inventory inv = player.getInventory(); // getInventory;
         if (!inv.getItem(slot).isEmpty()) {
-            player.drop(inv.removeItem(slot, dropAll ? inv.getItem(slot).getCount() : 1), false, true); // scatter, keep owner
+            player.drop(inv.removeItem(slot, dropAll ? inv.getItem(slot).getCount() : 1), false, Prediction.SERVER_ONLY); // scatter, keep owner
         }
     }
 
@@ -401,7 +403,7 @@ public class PlayerActionPack {
                                     blockHit
                                 );
                                 if (result instanceof InteractionResult.Success success) {
-                                    if (success.swingSource() == InteractionResult.SwingSource.SERVER) player.swing(hand);
+                                    if (success.swingSource() == InteractionResult.SwingSource.SERVER_ONLY) player.swing(hand, SwingAnimation.DEFAULT, false);
                                     ap.itemUseCooldown = 3;
                                     return true;
                                 }
@@ -451,7 +453,7 @@ public class PlayerActionPack {
                         EntityHitResult entityHit = (EntityHitResult) hit;
                         if (!action.isContinuous) {
                             player.attack(entityHit.getEntity());
-                            player.swing(InteractionHand.MAIN_HAND);
+                            player.swing(InteractionHand.MAIN_HAND, SwingAnimation.DEFAULT, false);
                         }
                         player.resetAttackStrengthTicker();
                         player.resetLastActionTime();
@@ -532,7 +534,7 @@ public class PlayerActionPack {
 
                         }
                         player.resetLastActionTime();
-                        player.swing(InteractionHand.MAIN_HAND);
+                        player.swing(InteractionHand.MAIN_HAND, SwingAnimation.DEFAULT, false);
                         return blockBroken;
                     }
                 }

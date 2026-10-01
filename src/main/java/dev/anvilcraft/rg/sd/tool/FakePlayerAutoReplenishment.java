@@ -59,7 +59,7 @@ public class FakePlayerAutoReplenishment {
         ItemContainerContents contents = shulkerBox.get(DataComponents.CONTAINER);
         if (contents == null) return 0;
         // 潜影盒没有容器组件
-        List<ItemStack> stacks = contents.allItemsCopyStream().toList();
+        List<ItemStack> stacks = contents.itemCopies().toList();
         for (ItemStack stack : stacks) {
             if (ItemStack.isSameItemSameComponents(itemStack, stack)) {
                 int temp;

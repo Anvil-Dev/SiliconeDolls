@@ -10,7 +10,6 @@
     "FishingHookMixin",
     "ItemStackMixin",
     "PlayerListMixin",
-    "PlayerMixin",
     "ServerConfigurationPacketListenerImplMixin",
     "ServerPlayerMixin",
     "AbstractContainerMenuAccessor",
