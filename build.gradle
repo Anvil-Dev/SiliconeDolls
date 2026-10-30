@@ -2,7 +2,7 @@ plugins {
     id 'java-library'
     id 'maven-publish'
     id 'idea'
-    id 'net.neoforged.moddev' version '2.0.107'
+    id 'net.neoforged.moddev' version '2.0.141'
     id 'io.freefair.lombok' version '8.7.1'
 }
 
@@ -168,4 +168,8 @@ idea {
 
 lombok {
     version = "1.18.34"
+}
+
+tasks.named('jar', Jar) {
+    archiveFileName = "${mod_id}-${version}-mc${minecraft_version}.jar"
 }
