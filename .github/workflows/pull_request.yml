@@ -23,6 +23,13 @@ jobs:
       - name: checkout
         uses: actions/checkout@v4
 
+      - name: Checkout matching RollingGate
+        uses: actions/checkout@v4
+        with:
+          repository: Anvil-Dev/RollingGate
+          ref: releases/1.21.11
+          path: .dependencies/RollingGate
+
       - name: validate gradle wrapper
         uses: gradle/actions/wrapper-validation@v3
 
@@ -47,22 +54,26 @@ jobs:
         uses: gradle/actions/setup-gradle@v3
 
       - name: Build
-        run: ./gradlew build
+        run: ./gradlew build -Prolling_gate_source=.dependencies/RollingGate
 
       - name: Get Version
         id: version
         run: |
-          MESSAGE=$(ls build/libs/* | grep sources.jar -v | grep shadow.jar -v | grep slim.jar -v | awk -F '${{ steps.properties.outputs.mod_name }}-neoforge-${{ steps.properties.outputs.minecraft_version }}-|.jar' '{print $2}')
+          JAR=$(find build/libs -maxdepth 1 -name '${{ steps.properties.outputs.mod_id }}-*-mc${{ steps.properties.outputs.minecraft_version }}.jar' -print -quit)
+          MESSAGE=${JAR##*/}
+          MESSAGE=${MESSAGE#${{ steps.properties.outputs.mod_id }}-}
+          MESSAGE=${MESSAGE%-mc${{ steps.properties.outputs.minecraft_version }}.jar}
           echo "version=$MESSAGE" >> $GITHUB_OUTPUT
 
       - name: capture build artifacts
         uses: actions/upload-artifact@v4.3.3
         with:
           name: "${{ steps.properties.outputs.mod_name }} ${{ steps.version.outputs.version }}"
-          path: build/libs/${{ steps.properties.outputs.mod_name }}-neoforge-${{ steps.properties.outputs.minecraft_version }}-${{ steps.version.outputs.version }}.jar
+          path: build/libs/${{ steps.properties.outputs.mod_id }}-${{ steps.version.outputs.version }}-mc${{ steps.properties.outputs.minecraft_version }}.jar
 
       - name: gametest
-        uses: Anvil-Dev/dedicated-server-launch-test@1.21.10-neoforge
+        uses: Anvil-Dev/dedicated-server-launch-test@1.21.11-neoforge
         with:
-          mod: build/libs/${{ steps.properties.outputs.mod_name }}-neoforge-${{ steps.properties.outputs.minecraft_version }}-${{ steps.version.outputs.version }}.jar
-          extra-mods: rolling-gate:${{ steps.properties.outputs.rolling_gate_version }}
+          mods: |
+            build/libs/${{ steps.properties.outputs.mod_id }}-${{ steps.version.outputs.version }}-mc${{ steps.properties.outputs.minecraft_version }}.jar
+            .dependencies/RollingGate/build/libs/rolling_gate-*-mc${{ steps.properties.outputs.minecraft_version }}.jar

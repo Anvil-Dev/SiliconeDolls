@@ -4,8 +4,7 @@ import dev.anvilcraft.rg.sd.entity.FakePlayer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.PlayerInfo;
 import net.minecraft.world.entity.player.Player;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.Nullable;
 
 import java.util.UUID;
 
@@ -17,7 +16,7 @@ public class ClientUtils {
         return null;
     }
 
-    public static boolean isFakePlayer(@NotNull Player player) {
+    public static boolean isFakePlayer(Player player) {
         //noinspection resource
         if (player.level().isClientSide()) {
             PlayerInfo info = getPlayerInfo(player.getUUID());

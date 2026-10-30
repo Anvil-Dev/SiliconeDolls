@@ -13,7 +13,6 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.equipment.Equippable;
-import org.jetbrains.annotations.NotNull;
 
 public class PlayerInventoryMenu extends ChestMenu {
     public PlayerInventoryMenu(int i, Inventory inventory, Container container) {
@@ -21,11 +20,11 @@ public class PlayerInventoryMenu extends ChestMenu {
     }
 
     @Override
-    public @NotNull ItemStack quickMoveStack(@NotNull Player player, int slotIndex) {
+    public ItemStack quickMoveStack(Player player, int slotIndex) {
         return quickMove(this, slotIndex);
     }
 
-    public static ItemStack quickMove(@NotNull ChestMenu chestMenu, int slotIndex) {
+    public static ItemStack quickMove(ChestMenu chestMenu, int slotIndex) {
         ItemStack remainingItem = ItemStack.EMPTY;
         Slot slot = chestMenu.slots.get(slotIndex);
         if (slot.hasItem()) {
@@ -70,7 +69,7 @@ public class PlayerInventoryMenu extends ChestMenu {
         return remainingItem;
     }
 
-    private static int getArmorOrdinal(@NotNull ItemStack stack) {
+    private static int getArmorOrdinal(ItemStack stack) {
         int ordinal = -1;
         Item item = stack.getItem();
         Equippable equippable = item.components().get(DataComponents.EQUIPPABLE);

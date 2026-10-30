@@ -13,7 +13,6 @@ import net.minecraft.world.SimpleMenuProvider;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.ChestMenu;
 import net.minecraft.world.item.ItemStack;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.Map;
 
@@ -25,7 +24,7 @@ public abstract class PlayerContainer extends CustomChestMenu {
     }
 
     @Override
-    public @NotNull ItemStack getItem(int slot) {
+    public ItemStack getItem(int slot) {
         Map.Entry<NonNullList<ItemStack>, Integer> pair = getItemSlot(slot);
         if (pair != null) {
             return pair.getKey().get(pair.getValue());
@@ -37,7 +36,7 @@ public abstract class PlayerContainer extends CustomChestMenu {
     public abstract Map.Entry<NonNullList<ItemStack>, Integer> getItemSlot(int slot);
 
     @Override
-    public @NotNull ItemStack removeItem(int slot, int amount) {
+    public ItemStack removeItem(int slot, int amount) {
         Map.Entry<NonNullList<ItemStack>, Integer> pair = getItemSlot(slot);
         NonNullList<ItemStack> list = null;
         if (pair != null) {
@@ -51,7 +50,7 @@ public abstract class PlayerContainer extends CustomChestMenu {
     }
 
     @Override
-    public @NotNull ItemStack removeItemNoUpdate(int slot) {
+    public ItemStack removeItemNoUpdate(int slot) {
         Map.Entry<NonNullList<ItemStack>, Integer> pair = getItemSlot(slot);
         NonNullList<ItemStack> list = null;
         if (pair != null) {
@@ -67,7 +66,7 @@ public abstract class PlayerContainer extends CustomChestMenu {
     }
 
     @Override
-    public void setItem(int slot, @NotNull ItemStack stack) {
+    public void setItem(int slot, ItemStack stack) {
         Map.Entry<NonNullList<ItemStack>, Integer> pair = getItemSlot(slot);
         NonNullList<ItemStack> list = null;
         if (pair != null) {
@@ -84,11 +83,11 @@ public abstract class PlayerContainer extends CustomChestMenu {
     }
 
     @Override
-    public boolean stillValid(@NotNull Player player) {
+    public boolean stillValid(Player player) {
         return this.player.isAlive() && player.distanceToSqr(this.player) <= 64.0;
     }
 
-    public static InteractionResult openInventory(@NotNull ServerPlayer player, ServerPlayer otherPlayer) {
+    public static InteractionResult openInventory(ServerPlayer player, ServerPlayer otherPlayer) {
         SimpleMenuProvider provider;
         if (player.isShiftKeyDown()) {
             // 打开末影箱

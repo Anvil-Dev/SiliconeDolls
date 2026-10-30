@@ -9,7 +9,6 @@ import dev.anvilcraft.rg.tools.chest.menu.control.Button;
 import net.minecraft.core.NonNullList;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -19,7 +18,7 @@ public class PlayerEnderChestContainer extends PlayerContainer {
     public final NonNullList<ItemStack> items;
     private final NonNullList<ItemStack> buttons = NonNullList.withSize(27, ItemStack.EMPTY);
     private final List<NonNullList<ItemStack>> compartments;
-    private final @NotNull PlayerActionPack ap;
+    private final PlayerActionPack ap;
     private final Button sneakButton;
     private final Button jumpButton;
     @SuppressWarnings("FieldCanBeLocal")

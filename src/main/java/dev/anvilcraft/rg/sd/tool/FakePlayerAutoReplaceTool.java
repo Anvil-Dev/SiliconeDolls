@@ -3,10 +3,9 @@ package dev.anvilcraft.rg.sd.tool;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import org.jetbrains.annotations.NotNull;
 
 public class FakePlayerAutoReplaceTool {
-    public static void autoReplaceTool(@NotNull Player fakePlayer) {
+    public static void autoReplaceTool(Player fakePlayer) {
         ItemStack mainHand = fakePlayer.getMainHandItem();
         ItemStack offHand = fakePlayer.getOffhandItem();
         if (!mainHand.isEmpty() && (mainHand.getMaxDamage() - mainHand.getDamageValue()) <= 10)
@@ -15,7 +14,7 @@ public class FakePlayerAutoReplaceTool {
             replaceTool(EquipmentSlot.OFFHAND, fakePlayer);
     }
 
-    public static void replaceTool(EquipmentSlot slot, @NotNull Player fakePlayer) {
+    public static void replaceTool(EquipmentSlot slot, Player fakePlayer) {
         ItemStack itemStack = fakePlayer.getItemBySlot(slot);
         for (int i = 0; i < 36; i++) {
             ItemStack itemStack1 = fakePlayer.getInventory().getItem(i);

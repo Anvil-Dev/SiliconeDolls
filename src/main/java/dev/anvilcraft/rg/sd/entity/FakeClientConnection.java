@@ -6,7 +6,6 @@ import net.minecraft.network.Connection;
 import net.minecraft.network.PacketListener;
 import net.minecraft.network.ProtocolInfo;
 import net.minecraft.network.protocol.PacketFlow;
-import org.jetbrains.annotations.NotNull;
 
 public class FakeClientConnection extends Connection {
     public FakeClientConnection(PacketFlow receiving) {
@@ -23,10 +22,10 @@ public class FakeClientConnection extends Connection {
     }
 
     @Override
-    public void setListenerForServerboundHandshake(@NotNull PacketListener packetListener) {
+    public void setListenerForServerboundHandshake(PacketListener packetListener) {
     }
 
     @Override
-    public <T extends PacketListener> void setupInboundProtocol(@NotNull ProtocolInfo<T> protocolInfo, @NotNull T packetListener) {
+    public <T extends PacketListener> void setupInboundProtocol(ProtocolInfo<T> protocolInfo, T packetListener) {
     }
 }

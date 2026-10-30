@@ -8,7 +8,6 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.network.CommonListenerCookie;
 import net.minecraft.server.network.ServerGamePacketListenerImpl;
-import org.jetbrains.annotations.NotNull;
 
 public class FakePlayerNetHandler extends ServerGamePacketListenerImpl {
     public FakePlayerNetHandler(MinecraftServer server, Connection connection, ServerPlayer player, CommonListenerCookie cookie) {
@@ -16,11 +15,11 @@ public class FakePlayerNetHandler extends ServerGamePacketListenerImpl {
     }
 
     @Override
-    public void send(final @NotNull Packet<?> packetIn) {
+    public void send(final Packet<?> packetIn) {
     }
 
     @Override
-    public void disconnect(@NotNull Component message) {
+    public void disconnect(Component message) {
         if (message.getContents() instanceof TranslatableContents text && (
             text.getKey()
                 .equals("multiplayer.disconnect.idling") || text.getKey()

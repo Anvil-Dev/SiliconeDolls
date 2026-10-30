@@ -9,7 +9,6 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ClientInformation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import org.jetbrains.annotations.NotNull;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
@@ -42,19 +41,19 @@ abstract class ServerPlayerMixin implements IServerPlayerInjector {
 
     @Override
     @SuppressWarnings("AddedMixinMembersNamePattern")
-    public @NotNull PlayerActionPack getActionPack() {
+    public PlayerActionPack getActionPack() {
         return sd$actionPack;
     }
 
     @Override
     @SuppressWarnings("AddedMixinMembersNamePattern")
-    public @NotNull PlayerEnderChestContainer getEnderChestContainer() {
+    public PlayerEnderChestContainer getEnderChestContainer() {
         return this.sd$enderChestContainer;
     }
 
     @Override
     @SuppressWarnings("AddedMixinMembersNamePattern")
-    public @NotNull PlayerInventoryContainer getInventoryContainer() {
+    public PlayerInventoryContainer getInventoryContainer() {
         return this.sd$inventoryContainer;
     }
 }

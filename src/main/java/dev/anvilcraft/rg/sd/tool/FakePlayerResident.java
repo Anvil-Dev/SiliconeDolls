@@ -21,12 +21,11 @@ import net.minecraft.server.network.CommonListenerCookie;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Player;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.Map;
 
 public class FakePlayerResident {
-    public static @NotNull JsonObject save(Player player) {
+    public static JsonObject save(Player player) {
         JsonObject fakePlayer = new JsonObject();
         if (SiliconeDollsServerRules.fakePlayerReloadAction) {
             PlayerActionPack actionPack = ((IServerPlayerInjector) player).getActionPack();
@@ -35,7 +34,7 @@ public class FakePlayerResident {
         return fakePlayer;
     }
 
-    public static void createFake(String username, @NotNull MinecraftServer server, final JsonObject actions) {
+    public static void createFake(String username, MinecraftServer server, final JsonObject actions) {
         GameProfile gameprofile = server.services().profileResolver().fetchByName(username).orElse(null);
         if (gameprofile == null) {
             if (!SiliconeDollsServerRules.allowSpawningOfflinePlayers) {
@@ -69,7 +68,7 @@ public class FakePlayerResident {
         });
     }
 
-    public static void load(Map.@NotNull Entry<String, JsonElement> entry, MinecraftServer server) {
+    public static void load(Map.Entry<String, JsonElement> entry, MinecraftServer server) {
         String username = entry.getKey();
         JsonObject fakePlayer = entry.getValue().getAsJsonObject();
         JsonObject actions = new JsonObject();

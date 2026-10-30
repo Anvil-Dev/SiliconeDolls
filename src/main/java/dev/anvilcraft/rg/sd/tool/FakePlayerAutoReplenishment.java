@@ -6,16 +6,15 @@ import net.minecraft.core.component.DataComponents;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.ItemContainerContents;
-import org.jetbrains.annotations.NotNull;
 
 public class FakePlayerAutoReplenishment {
-    public static void autoReplenishment(@NotNull Player fakePlayer) {
+    public static void autoReplenishment(Player fakePlayer) {
         NonNullList<ItemStack> itemStackList = fakePlayer.getInventory().getNonEquipmentItems();
         replenishment(fakePlayer.getMainHandItem(), itemStackList);
         replenishment(fakePlayer.getOffhandItem(), itemStackList);
     }
 
-    private static void replenishment(@NotNull ItemStack itemStack, NonNullList<ItemStack> itemStackList) {
+    private static void replenishment(ItemStack itemStack, NonNullList<ItemStack> itemStackList) {
         int base = itemStack.getMaxStackSize() / 8;
         if (itemStack.isEmpty() || (itemStack.getCount() > base)) {
             return;
@@ -48,12 +47,12 @@ public class FakePlayerAutoReplenishment {
         }
     }
 
-    private static boolean hasContainer(@NotNull ItemStack stack) {
+    private static boolean hasContainer(ItemStack stack) {
         return stack.has(DataComponents.CONTAINER);
     }
 
     // 从潜影盒拿取物品，请注意：在创造模式下使用鼠标中键复制物品（不是指选取方块）时，物品组件仅被浅拷贝。
-    private static int pickItemFromBox(@NotNull ItemStack shulkerBox, ItemStack itemStack, int count) {
+    private static int pickItemFromBox(ItemStack shulkerBox, ItemStack itemStack, int count) {
         ItemContainerContents contents = shulkerBox.get(DataComponents.CONTAINER);
         if (contents == null) return 0;
         // 潜影盒没有容器组件
@@ -75,7 +74,7 @@ public class FakePlayerAutoReplenishment {
     }
 
     // 如果潜影盒为空，将物品栏组件替换为空以保证潜影盒堆叠的正常运行
-    private static void ifIsEmptyClear(@NotNull ItemStack shulkerBox) {
+    private static void ifIsEmptyClear(ItemStack shulkerBox) {
         ItemContainerContents contents = shulkerBox.get(DataComponents.CONTAINER);
         if (contents == null) {
             return;

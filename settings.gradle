@@ -9,3 +9,12 @@ pluginManagement {
 plugins {
     id 'org.gradle.toolchains.foojay-resolver-convention' version '0.8.0'
 }
+
+def rollingGateSource = providers.gradleProperty('rolling_gate_source').orElse('../RollingGate').get()
+if (file(rollingGateSource).isDirectory()) {
+    includeBuild(rollingGateSource) {
+        dependencySubstitution {
+            substitute module('dev.anvilcraft.rg:RollingGate') using project(':')
+        }
+    }
+}

@@ -33,7 +33,6 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.portal.TeleportTransition;
 import net.minecraft.world.phys.Vec2;
 import net.minecraft.world.phys.Vec3;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.Set;
 import java.util.function.Consumer;
@@ -55,12 +54,12 @@ public class FakePlayer extends ServerPlayer {
     }
 
     public static boolean createFake(
-        @NotNull MinecraftServer server,
-        @NotNull String username,
-        @NotNull Vec3 pos,
-        @NotNull Vec2 facing,
-        @NotNull ServerLevel level,
-        @NotNull GameType gameMode,
+        MinecraftServer server,
+        String username,
+        Vec3 pos,
+        Vec2 facing,
+        ServerLevel level,
+        GameType gameMode,
         boolean flying
     ) {
         return FakePlayer.createFake(
@@ -70,14 +69,14 @@ public class FakePlayer extends ServerPlayer {
     }
 
     public static boolean createFake(
-        @NotNull MinecraftServer server,
-        @NotNull String username,
-        @NotNull Vec3 pos,
-        @NotNull Vec2 facing,
-        @NotNull ServerLevel level,
-        @NotNull GameType gamemode,
+        MinecraftServer server,
+        String username,
+        Vec3 pos,
+        Vec2 facing,
+        ServerLevel level,
+        GameType gamemode,
         boolean flying,
-        @NotNull Consumer<FakePlayer> callback
+        Consumer<FakePlayer> callback
     ) {
         GameProfile gameprofile = server.services().profileResolver().fetchByName(username).orElse(null);
         if (gameprofile == null) {
@@ -118,7 +117,7 @@ public class FakePlayer extends ServerPlayer {
     }
 
     @SuppressWarnings("UnusedReturnValue")
-    public static @NotNull FakePlayer createShadow(@NotNull ServerPlayer player) {
+    public static FakePlayer createShadow(ServerPlayer player) {
         MinecraftServer server = player.level().getServer();
         if (server == null) throw new IllegalStateException("Server is null");
         server.getPlayerList().remove(player);
@@ -152,7 +151,7 @@ public class FakePlayer extends ServerPlayer {
         return playerShadow;
     }
 
-    public static @NotNull FakePlayer create(
+    public static FakePlayer create(
         MinecraftServer server,
         ServerLevel level,
         GameProfile gameProfile,
@@ -168,7 +167,7 @@ public class FakePlayer extends ServerPlayer {
     }
 
     @Override
-    public void onEquipItem(@NotNull EquipmentSlot slot, @NotNull ItemStack oldItem, @NotNull ItemStack newItem) {
+    public void onEquipItem(EquipmentSlot slot, ItemStack oldItem, ItemStack newItem) {
         if (!this.isUsingItem()) super.onEquipItem(slot, oldItem, newItem);
     }
 
@@ -176,7 +175,7 @@ public class FakePlayer extends ServerPlayer {
         this.kill(Component.literal("Killed"));
     }
 
-    public void kill(@NotNull Component reason) {
+    public void kill(Component reason) {
         this.shakeOff();
         if (reason.getContents() instanceof TranslatableContents text && text.getKey().equals("multiplayer.disconnect.duplicate_login")) {
             this.connection.onDisconnect(new DisconnectionDetails(reason));
@@ -214,7 +213,7 @@ public class FakePlayer extends ServerPlayer {
     }
 
     @Override
-    public void die(@NotNull DamageSource cause) {
+    public void die(DamageSource cause) {
         shakeOff();
         // 清除经验值
         this.setExperiencePoints(0);
@@ -234,7 +233,7 @@ public class FakePlayer extends ServerPlayer {
     }
 
     @Override
-    public @NotNull String getIpAddress() {
+    public String getIpAddress() {
         return "127.0.0.1";
     }
 
@@ -244,12 +243,12 @@ public class FakePlayer extends ServerPlayer {
     }
 
     @Override
-    protected void checkFallDamage(double y, boolean onGround, @NotNull BlockState state, @NotNull BlockPos pos) {
+    protected void checkFallDamage(double y, boolean onGround, BlockState state, BlockPos pos) {
         doCheckFallDamage(0.0, y, 0.0, onGround);
     }
 
     @Override
-    public ServerPlayer teleport(@NotNull TeleportTransition serverLevel) {
+    public ServerPlayer teleport(TeleportTransition serverLevel) {
         super.teleport(serverLevel);
         if (wonGame) {
             ServerboundClientCommandPacket p = new ServerboundClientCommandPacket(ServerboundClientCommandPacket.Action.PERFORM_RESPAWN);

@@ -5,7 +5,7 @@ import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import dev.anvilcraft.rg.sd.SiliconeDolls;
 import net.minecraft.commands.CommandSourceStack;
 import net.neoforged.fml.ModList;
-import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.Nullable;
 
 public class CombatManager {
     public static boolean isLoaded(String modid) {

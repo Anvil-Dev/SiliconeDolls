@@ -7,8 +7,7 @@ import dev.anvilcraft.rg.sd.command.BotCommand;
 import dev.anvilcraft.rg.sd.command.PlayerCommand;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.SharedSuggestionProvider;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.Nullable;
 
 import java.util.List;
 import java.util.function.BiFunction;
@@ -19,11 +18,11 @@ public class ModCommands {
         BotCommand.register(dispatcher);
     }
 
-    public static @NotNull SuggestionProvider<CommandSourceStack> suggest(String... strings) {
+    public static SuggestionProvider<CommandSourceStack> suggest(String... strings) {
         return ModCommands.suggest(List.of(strings));
     }
 
-    public static @NotNull SuggestionProvider<CommandSourceStack> suggest(Iterable<String> strings) {
+    public static SuggestionProvider<CommandSourceStack> suggest(Iterable<String> strings) {
         return (context, builder) -> SharedSuggestionProvider.suggest(strings, builder);
     }
 

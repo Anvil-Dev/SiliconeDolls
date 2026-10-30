@@ -12,7 +12,6 @@ import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
-import org.jetbrains.annotations.NotNull;
 
 public class ModelCommand {
     public static CommandNode<CommandSourceStack> ysm = null;
@@ -23,7 +22,7 @@ public class ModelCommand {
     public static CommandNode<CommandSourceStack> textureId = null;
 
     @SuppressWarnings("unused")
-    public static @NotNull LiteralArgumentBuilder<CommandSourceStack> register(@NotNull CommandDispatcher<CommandSourceStack> dispatcher) {
+    public static LiteralArgumentBuilder<CommandSourceStack> register(CommandDispatcher<CommandSourceStack> dispatcher) {
         ModelCommand.init(dispatcher);
         return Commands.literal("model")
             .then(
@@ -40,7 +39,7 @@ public class ModelCommand {
             );
     }
 
-    public static boolean init(@NotNull CommandDispatcher<CommandSourceStack> dispatcher) {
+    public static boolean init(CommandDispatcher<CommandSourceStack> dispatcher) {
         RootCommandNode<CommandSourceStack> root = dispatcher.getRoot();
         if (ModelCommand.textureId != null) return true;
         try {
@@ -57,7 +56,7 @@ public class ModelCommand {
         return true;
     }
 
-    public static int set(@NotNull CommandContext<CommandSourceStack> context, @NotNull CommandDispatcher<CommandSourceStack> dispatcher) {
+    public static int set(CommandContext<CommandSourceStack> context, CommandDispatcher<CommandSourceStack> dispatcher) {
         if (ModelCommand.textureId == null && !ModelCommand.init(dispatcher)) return 0;
         ServerPlayer player = PlayerCommand.getPlayerByPermission(context);
         if (player == null) return 0;
@@ -66,7 +65,7 @@ public class ModelCommand {
         String modelId = StringArgumentType.getString(context, "model_id");
         String textureId = StringArgumentType.getString(context, "texture_id");
         server.getCommands().performPrefixedCommand(
-            context.getSource().withPermission(2),
+            context.getSource().withPermission(net.minecraft.server.permissions.LevelBasedPermissionSet.GAMEMASTER),
             "ysm model set %s \"%s\" \"%s\"".formatted(player.getGameProfile().name(), modelId, textureId)
         );
         return 1;

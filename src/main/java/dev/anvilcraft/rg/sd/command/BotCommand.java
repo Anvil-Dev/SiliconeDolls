@@ -44,7 +44,6 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec2;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.network.connection.ConnectionType;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -71,7 +70,7 @@ public class BotCommand {
             .registerTypeHierarchyAdapter(PlayerActionPack.Action.class, new PlayerActionPack.Action.Serializer()));
     }
 
-    public static void register(@NotNull CommandDispatcher<CommandSourceStack> dispatcher) {
+    public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
         dispatcher.register(Commands.literal("bot")
             .executes(BotCommand::list)
             .requires(source -> RGValidator.CommandRuleValidator.hasPermission(() -> SiliconeDollsServerRules.commandBot, source))
@@ -154,7 +153,7 @@ public class BotCommand {
         return 1;
     }
 
-    private static @NotNull MutableComponent botToComponent(@NotNull BotInfo botInfo) {
+    private static MutableComponent botToComponent(BotInfo botInfo) {
         MutableComponent desc = Component.literal(botInfo.desc)
             .withStyle(Style.EMPTY.applyFormat(ChatFormatting.GRAY)
                 .withHoverEvent(new HoverEvent.ShowText(Component.literal(botInfo.name))));
@@ -177,7 +176,7 @@ public class BotCommand {
         return component.append(" ").append(delete);
     }
 
-    private static void listComponent(@NotNull CommandContext<CommandSourceStack> context, int page, int maxPage, String command) {
+    private static void listComponent(CommandContext<CommandSourceStack> context, int page, int maxPage, String command) {
         Component prevPage = page <= 1
                              ? Component.literal("<<<").withStyle(ChatFormatting.GRAY)
                              : Component.literal("<<<")
@@ -201,11 +200,11 @@ public class BotCommand {
                 .append(Component.literal("=======").withStyle(ChatFormatting.YELLOW)));
     }
 
-    private static @NotNull SuggestionProvider<CommandSourceStack> suggestBot() {
+    private static SuggestionProvider<CommandSourceStack> suggestBot() {
         return ModCommands.suggest(BOT_INFO.map.keySet());
     }
 
-    private static @NotNull SuggestionProvider<CommandSourceStack> suggestBotGroup() {
+    private static SuggestionProvider<CommandSourceStack> suggestBotGroup() {
         return ModCommands.suggest(BOT_GROUP_INFO.map.keySet());
     }
 
@@ -521,7 +520,7 @@ public class BotCommand {
         return 1;
     }
 
-    private static @NotNull MutableComponent botGroupToComponent(@NotNull BotGroupInfo botGroupInfo) {
+    private static MutableComponent botGroupToComponent(BotGroupInfo botGroupInfo) {
         MutableComponent name = Component.literal(botGroupInfo.name)
             .withStyle(Style.EMPTY.applyFormat(ChatFormatting.GRAY)
                 .withHoverEvent(new HoverEvent.ShowText(Component.literal(botGroupInfo.name))));

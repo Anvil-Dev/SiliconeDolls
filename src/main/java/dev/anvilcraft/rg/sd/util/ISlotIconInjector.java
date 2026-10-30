@@ -1,7 +1,7 @@
 package dev.anvilcraft.rg.sd.util;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 public interface ISlotIconInjector {
-    void siliconeDolls$setIcon(ResourceLocation resource);
+    void siliconeDolls$setIcon(Identifier resource);
 }

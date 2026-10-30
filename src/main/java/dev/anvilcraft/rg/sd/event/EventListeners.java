@@ -33,7 +33,6 @@ import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
 import net.neoforged.neoforge.event.server.ServerStartedEvent;
 import net.neoforged.neoforge.event.tick.PlayerTickEvent;
-import org.jetbrains.annotations.NotNull;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -46,12 +45,12 @@ import java.util.Map;
 @EventBusSubscriber(modid = SiliconeDolls.MODID)
 public class EventListeners {
     @SubscribeEvent(priority = EventPriority.LOWEST)
-    public static void registerCommands(@NotNull RegisterCommandsEvent event) {
+    public static void registerCommands(RegisterCommandsEvent event) {
         ModCommands.register(event.getDispatcher());
     }
 
     @SubscribeEvent
-    public static void onPlayerTick(@NotNull PlayerTickEvent.Post event) {
+    public static void onPlayerTick(PlayerTickEvent.Post event) {
         Player player = event.getEntity();
         //noinspection resource
         if (player.level().isClientSide()) {
@@ -62,7 +61,7 @@ public class EventListeners {
     }
 
     @SubscribeEvent
-    public static void onPlayerInteract(PlayerInteractEvent.@NotNull EntityInteract event) {
+    public static void onPlayerInteract(PlayerInteractEvent.EntityInteract event) {
         Player player = event.getEntity();
         if (CombatManager.isLoaded("carryon") && player.isShiftKeyDown() && event.getItemStack().isEmpty()) return;
         Entity entity = event.getTarget();
@@ -89,7 +88,7 @@ public class EventListeners {
     }
 
     @SubscribeEvent
-    public static void onPlayerLoggedIn(PlayerEvent.@NotNull PlayerLoggedInEvent event) {
+    public static void onPlayerLoggedIn(PlayerEvent.PlayerLoggedInEvent event) {
         Player player = event.getEntity();
         if (SiliconeDollsServerRules.fakePlayerSpawnNoKnockback && player instanceof FakePlayer) {
             // 清除速度
@@ -102,7 +101,7 @@ public class EventListeners {
     }
 
     @SubscribeEvent
-    public static void onServerStopping(@NotNull ServerAboutToStopEvent event) {
+    public static void onServerStopping(ServerAboutToStopEvent event) {
         MinecraftServer server = event.getServer();
         if (SiliconeDollsServerRules.fakePlayerResident) {
             JsonObject fakePlayerList = new JsonObject();
@@ -131,7 +130,7 @@ public class EventListeners {
     }
 
     @SubscribeEvent
-    public static void onServerStartedEvent(@NotNull ServerStartedEvent event) {
+    public static void onServerStartedEvent(ServerStartedEvent event) {
         MinecraftServer server = event.getServer();
         if (SiliconeDollsServerRules.fakePlayerResident) {
             File file = server.getWorldPath(LevelResource.ROOT).resolve("fake_player.rg.json").toFile();

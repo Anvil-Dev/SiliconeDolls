@@ -22,11 +22,11 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.animal.horse.AbstractHorse;
+import net.minecraft.world.entity.animal.equine.AbstractHorse;
 import net.minecraft.world.entity.decoration.ItemFrame;
 import net.minecraft.world.entity.player.Inventory;
-import net.minecraft.world.entity.vehicle.Boat;
-import net.minecraft.world.entity.vehicle.Minecart;
+import net.minecraft.world.entity.vehicle.boat.Boat;
+import net.minecraft.world.entity.vehicle.minecart.Minecart;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
@@ -34,8 +34,7 @@ import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec2;
 import net.minecraft.world.phys.Vec3;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.Nullable;
 
 import java.lang.reflect.Type;
 import java.util.EnumMap;
@@ -71,7 +70,7 @@ public class PlayerActionPack {
         if (player != null) stopAll();
     }
 
-    public void copyFrom(@NotNull PlayerActionPack other) {
+    public void copyFrom(PlayerActionPack other) {
         actions.putAll(other.actions);
         currentBlock = other.currentBlock;
         blockHitDelay = other.blockHitDelay;
@@ -123,7 +122,7 @@ public class PlayerActionPack {
         return this;
     }
 
-    public PlayerActionPack look(@NotNull Direction direction) {
+    public PlayerActionPack look(Direction direction) {
         return switch (direction) {
             case NORTH -> look(180, 0);
             case SOUTH -> look(0, 0);
@@ -134,7 +133,7 @@ public class PlayerActionPack {
         };
     }
 
-    public PlayerActionPack look(@NotNull Vec2 rotation) {
+    public PlayerActionPack look(Vec2 rotation) {
         return look(rotation.x, rotation.y);
     }
 
@@ -154,7 +153,7 @@ public class PlayerActionPack {
         return look(player.getYRot() + yaw, player.getXRot() + pitch);
     }
 
-    public PlayerActionPack turn(@NotNull Vec2 rotation) {
+    public PlayerActionPack turn(Vec2 rotation) {
         return turn(rotation.x, rotation.y);
     }
 
@@ -249,7 +248,7 @@ public class PlayerActionPack {
         }
     }
 
-    static @NotNull HitResult getTarget(@NotNull ServerPlayer player) {
+    static HitResult getTarget(ServerPlayer player) {
         double reach = player.gameMode.isCreative() ? 5 : 4.5f;
         return Tracer.rayTrace(player, 1, reach, false);
     }
@@ -285,7 +284,7 @@ public class PlayerActionPack {
     public static class Serializer implements JsonDeserializer<PlayerActionPack>, JsonSerializer<PlayerActionPack> {
         @Override
         public PlayerActionPack deserialize(
-            @NotNull JsonElement json,
+            JsonElement json,
             Type typeOfT,
             JsonDeserializationContext context
         ) throws JsonParseException {
@@ -341,7 +340,7 @@ public class PlayerActionPack {
         }
 
         @Override
-        public JsonElement serialize(@NotNull PlayerActionPack src, Type typeOfSrc, JsonSerializationContext context) {
+        public JsonElement serialize(PlayerActionPack src, Type typeOfSrc, JsonSerializationContext context) {
             JsonObject object = new JsonObject();
             JsonObject actions = new JsonObject();
             for (Map.Entry<ActionType, Action> entry : src.actions.entrySet()) {
@@ -619,7 +618,7 @@ public class PlayerActionPack {
             return name().toLowerCase();
         }
 
-        public static @Nullable ActionType fromString(@NotNull String name) {
+        public static @Nullable ActionType fromString(String name) {
             try {
                 if (name.equals("drop")) return ActionType.DROP_ITEM;
                 return ActionType.valueOf(name.toUpperCase());
@@ -646,15 +645,15 @@ public class PlayerActionPack {
             isContinuous = continuous;
         }
 
-        public static @NotNull Action once() {
+        public static Action once() {
             return new Action(1, 1, 0, false);
         }
 
-        public static @NotNull Action continuous() {
+        public static Action continuous() {
             return new Action(-1, 1, 0, true);
         }
 
-        public static @NotNull Action interval(int interval) {
+        public static Action interval(int interval) {
             return new Action(-1, interval, 0, false);
         }
 
@@ -686,7 +685,7 @@ public class PlayerActionPack {
             return cancel;
         }
 
-        void retry(@NotNull PlayerActionPack actionPack, ActionType type) {
+        void retry(PlayerActionPack actionPack, ActionType type) {
             if (actionPack.player.isSpectator()) return;
             type.execute(actionPack.player, this);
             count++;
@@ -698,7 +697,7 @@ public class PlayerActionPack {
         public static class Serializer implements JsonDeserializer<Action>, JsonSerializer<Action> {
             @Override
             public Action deserialize(
-                @NotNull JsonElement json,
+                JsonElement json,
                 Type typeOfT,
                 JsonDeserializationContext context
             ) throws JsonParseException {
@@ -715,7 +714,7 @@ public class PlayerActionPack {
             }
 
             @Override
-            public JsonElement serialize(@NotNull Action src, Type typeOfSrc, JsonSerializationContext context) {
+            public JsonElement serialize(Action src, Type typeOfSrc, JsonSerializationContext context) {
                 JsonObject object = new JsonObject();
                 object.addProperty("limit", src.limit);
                 object.addProperty("interval", src.interval);

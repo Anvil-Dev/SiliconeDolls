@@ -38,15 +38,14 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.phys.Vec2;
 import net.minecraft.world.phys.Vec3;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 public class PlayerCommand {
-    public static void register(@NotNull CommandDispatcher<CommandSourceStack> dispatcher) {
+    public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
         RequiredArgumentBuilder<CommandSourceStack, String> player = Commands.argument("name", StringArgumentType.word())
             .suggests(PlayerCommand.suggestPlayer())
             .then(
@@ -69,7 +68,7 @@ public class PlayerCommand {
                                                                     .executes(PlayerCommand::spawnPlayer)
                                                                     .then(
                                                                         Commands.literal("in")
-                                                                            .requires(source -> source.hasPermission(Commands.LEVEL_GAMEMASTERS))
+                                                                            .requires(source -> Commands.LEVEL_GAMEMASTERS.check(source.permissions()))
                                                                             .then(
                                                                                 Commands.argument("gamemode", GameModeArgument.gameMode())
                                                                                     .executes(PlayerCommand::spawnPlayer)
@@ -203,7 +202,7 @@ public class PlayerCommand {
         dispatcher.register(builder);
     }
 
-    public static @NotNull SuggestionProvider<CommandSourceStack> suggestPlayer() {
+    public static SuggestionProvider<CommandSourceStack> suggestPlayer() {
         return (context, builder) -> {
             List<String> players = new ArrayList<>(context.getSource().getOnlinePlayerNames());
             players.add("Alex");
@@ -212,23 +211,23 @@ public class PlayerCommand {
         };
     }
 
-    private static @NotNull CompletableFuture<Suggestions> suggestAction(final CommandContext<CommandSourceStack> context, final SuggestionsBuilder builder) {
+    private static CompletableFuture<Suggestions> suggestAction(final CommandContext<CommandSourceStack> context, final SuggestionsBuilder builder) {
         return SharedSuggestionProvider.suggest(new String[]{"jump", "use", "attack", "swapHands", "drop"}, builder);
     }
 
-    private static @NotNull CompletableFuture<Suggestions> suggestDirection(final CommandContext<CommandSourceStack> context, final SuggestionsBuilder builder) {
+    private static CompletableFuture<Suggestions> suggestDirection(final CommandContext<CommandSourceStack> context, final SuggestionsBuilder builder) {
         return SharedSuggestionProvider.suggest(new String[]{"west", "east", "north", "south", "up", "down"}, builder);
     }
 
-    private static @NotNull CompletableFuture<Suggestions> suggestRotation(final CommandContext<CommandSourceStack> context, final SuggestionsBuilder builder) {
+    private static CompletableFuture<Suggestions> suggestRotation(final CommandContext<CommandSourceStack> context, final SuggestionsBuilder builder) {
         return SharedSuggestionProvider.suggest(new String[]{"left", "forward", "right", "back"}, builder);
     }
 
-    private static @NotNull CompletableFuture<Suggestions> suggestDropStack(final CommandContext<CommandSourceStack> context, final SuggestionsBuilder builder) {
+    private static CompletableFuture<Suggestions> suggestDropStack(final CommandContext<CommandSourceStack> context, final SuggestionsBuilder builder) {
         return SharedSuggestionProvider.suggest(new String[]{"all"}, builder);
     }
 
-    public static int spawnPlayer(@NotNull CommandContext<CommandSourceStack> context) {
+    public static int spawnPlayer(CommandContext<CommandSourceStack> context) {
         CommandSourceStack source = context.getSource();
         MinecraftServer server = source.getServer();
         String name = ModCommands.getArg(context, "name", StringArgumentType::getString);
@@ -294,12 +293,12 @@ public class PlayerCommand {
         return FakePlayer.createFake(server, name, pos, facing, level, gameMode, flying) ? 1 : 0;
     }
 
-    public static int shadowPlayer(@NotNull CommandContext<CommandSourceStack> context) {
+    public static int shadowPlayer(CommandContext<CommandSourceStack> context) {
         ServerPlayer player = getPlayer(context);
         if (player == null) return 0;
         if (player instanceof FakePlayer) return 0;
         CommandSourceStack source = context.getSource();
-        boolean isOp = source.hasPermission(Commands.LEVEL_GAMEMASTERS);
+        boolean isOp = Commands.LEVEL_GAMEMASTERS.check(source.permissions());
         Entity entity = source.getEntity();
         boolean isSelf = entity == player;
         if (!isOp && !isSelf) {
@@ -310,14 +309,14 @@ public class PlayerCommand {
         return 1;
     }
 
-    public static int kill(@NotNull CommandContext<CommandSourceStack> context) {
+    public static int kill(CommandContext<CommandSourceStack> context) {
         FakePlayer player = getFakePlayer(context);
         if (player == null) return 0;
         player.kill();
         return 1;
     }
 
-    public static int actions(@NotNull CommandContext<CommandSourceStack> context, String interval) {
+    public static int actions(CommandContext<CommandSourceStack> context, String interval) {
         String action = ModCommands.getArg(context, "action", StringArgumentType::getString);
         if (action == null) {
             return 0;
@@ -346,7 +345,7 @@ public class PlayerCommand {
         return 1;
     }
 
-    public static int sneak(@NotNull CommandContext<CommandSourceStack> context, String interval) {
+    public static int sneak(CommandContext<CommandSourceStack> context, String interval) {
         ServerPlayer player = getPlayerByPermission(context);
         if (player == null) return 0;
         PlayerActionPack actionPack = ((IServerPlayerInjector) player).getActionPack();
@@ -367,7 +366,7 @@ public class PlayerCommand {
         return 1;
     }
 
-    public static int unsneak(@NotNull CommandContext<CommandSourceStack> context) {
+    public static int unsneak(CommandContext<CommandSourceStack> context) {
         ServerPlayer player = getPlayerByPermission(context);
         if (player == null) return 0;
         PlayerActionPack actionPack = ((IServerPlayerInjector) player).getActionPack();
@@ -377,7 +376,7 @@ public class PlayerCommand {
     }
 
     @Deprecated
-    public static int sneak(@NotNull CommandContext<CommandSourceStack> context, boolean doSneak) {
+    public static int sneak(CommandContext<CommandSourceStack> context, boolean doSneak) {
         ServerPlayer player = getPlayerByPermission(context);
         if (player == null) return 0;
         PlayerActionPack actionPack = ((IServerPlayerInjector) player).getActionPack();
@@ -390,7 +389,7 @@ public class PlayerCommand {
         return 1;
     }
 
-    public static int sprint(@NotNull CommandContext<CommandSourceStack> context, boolean doSprint) {
+    public static int sprint(CommandContext<CommandSourceStack> context, boolean doSprint) {
         ServerPlayer player = getPlayerByPermission(context);
         if (player == null) return 0;
         PlayerActionPack actionPack = ((IServerPlayerInjector) player).getActionPack();
@@ -398,7 +397,7 @@ public class PlayerCommand {
         return 1;
     }
 
-    public static int mount(@NotNull CommandContext<CommandSourceStack> context, boolean doMount) {
+    public static int mount(CommandContext<CommandSourceStack> context, boolean doMount) {
         ServerPlayer player = getPlayerByPermission(context);
         if (player == null) return 0;
         PlayerActionPack actionPack = ((IServerPlayerInjector) player).getActionPack();
@@ -406,7 +405,7 @@ public class PlayerCommand {
         return 1;
     }
 
-    public static int lookDirection(@NotNull CommandContext<CommandSourceStack> context) {
+    public static int lookDirection(CommandContext<CommandSourceStack> context) {
         String direction = ModCommands.getArg(context, "direction", StringArgumentType::getString);
         if (direction == null) {
             return 0;
@@ -423,7 +422,7 @@ public class PlayerCommand {
         return 1;
     }
 
-    public static int lookAt(@NotNull CommandContext<CommandSourceStack> context) {
+    public static int lookAt(CommandContext<CommandSourceStack> context) {
         ServerPlayer player = getPlayerByPermission(context);
         if (player == null) return 0;
         PlayerActionPack actionPack = ((IServerPlayerInjector) player).getActionPack();
@@ -436,7 +435,7 @@ public class PlayerCommand {
         return 1;
     }
 
-    public static int turnRotation(@NotNull CommandContext<CommandSourceStack> context) {
+    public static int turnRotation(CommandContext<CommandSourceStack> context) {
         String rotation = ModCommands.getArg(context, "rotation", StringArgumentType::getString);
         if (rotation == null) {
             return 0;
@@ -453,7 +452,7 @@ public class PlayerCommand {
         return 1;
     }
 
-    public static int turn(@NotNull CommandContext<CommandSourceStack> context) {
+    public static int turn(CommandContext<CommandSourceStack> context) {
         ServerPlayer player = getPlayerByPermission(context);
         if (player == null) return 0;
         PlayerActionPack actionPack = ((IServerPlayerInjector) player).getActionPack();
@@ -470,7 +469,7 @@ public class PlayerCommand {
         return 1;
     }
 
-    public static int dropStack(@NotNull CommandContext<CommandSourceStack> context) {
+    public static int dropStack(CommandContext<CommandSourceStack> context) {
         ServerPlayer player = getPlayerByPermission(context);
         if (player == null) return 0;
         PlayerActionPack actionPack = ((IServerPlayerInjector) player).getActionPack();
@@ -486,7 +485,7 @@ public class PlayerCommand {
         return 1;
     }
 
-    public static int move(@NotNull CommandContext<CommandSourceStack> context) {
+    public static int move(CommandContext<CommandSourceStack> context) {
         ServerPlayer player = getPlayerByPermission(context);
         if (player == null) return 0;
         PlayerActionPack actionPack = ((IServerPlayerInjector) player).getActionPack();
@@ -515,7 +514,7 @@ public class PlayerCommand {
         }
     }
 
-    public static int hotbar(@NotNull CommandContext<CommandSourceStack> context) {
+    public static int hotbar(CommandContext<CommandSourceStack> context) {
         ServerPlayer player = getPlayerByPermission(context);
         if (player == null) return 0;
         PlayerActionPack actionPack = ((IServerPlayerInjector) player).getActionPack();
@@ -534,7 +533,7 @@ public class PlayerCommand {
         return 1;
     }
 
-    public static int stopActions(@NotNull CommandContext<CommandSourceStack> context) {
+    public static int stopActions(CommandContext<CommandSourceStack> context) {
         ServerPlayer player = getPlayerByPermission(context);
         if (player == null) return 0;
         PlayerActionPack actionPack = ((IServerPlayerInjector) player).getActionPack();
@@ -542,7 +541,7 @@ public class PlayerCommand {
         return 1;
     }
 
-    public static @Nullable ServerPlayer getPlayer(@NotNull CommandContext<CommandSourceStack> context) {
+    public static @Nullable ServerPlayer getPlayer(CommandContext<CommandSourceStack> context) {
         String name = ModCommands.getArg(context, "name", StringArgumentType::getString);
         if (name == null) {
             context.getSource().sendFailure(TranslationUtil.trans("silicone_dolls.commands.tips.invalid_name").withStyle(ChatFormatting.RED));
@@ -557,7 +556,7 @@ public class PlayerCommand {
         return playerByName;
     }
 
-    public static @Nullable FakePlayer getFakePlayer(@NotNull CommandContext<CommandSourceStack> context) {
+    public static @Nullable FakePlayer getFakePlayer(CommandContext<CommandSourceStack> context) {
         ServerPlayer player = getPlayer(context);
         if (player == null) return null;
         if (player instanceof FakePlayer fakePlayer) return fakePlayer;
@@ -565,18 +564,18 @@ public class PlayerCommand {
         return null;
     }
 
-    public static @Nullable ServerPlayer getPlayerByPermission(@NotNull CommandContext<CommandSourceStack> context) {
+    public static @Nullable ServerPlayer getPlayerByPermission(CommandContext<CommandSourceStack> context) {
         ServerPlayer player = getPlayer(context);
         if (player == null) return null;
         if (player instanceof FakePlayer fakePlayer) return fakePlayer;
         CommandSourceStack stack = context.getSource();
-        if (stack.hasPermission(Commands.LEVEL_GAMEMASTERS)) return player;
+        if (Commands.LEVEL_GAMEMASTERS.check(stack.permissions())) return player;
         if (stack.getPlayer() == player) return player;
         stack.sendFailure(TranslationUtil.trans("silicone_dolls.commands.tips.no_permission", player.getName().getString()).withStyle(ChatFormatting.RED));
         return null;
     }
 
-    public static @Nullable PlayerActionPack.ActionType getAction(String name) {
+    public static PlayerActionPack.@Nullable ActionType getAction(String name) {
         return PlayerActionPack.ActionType.fromString(name);
     }
 

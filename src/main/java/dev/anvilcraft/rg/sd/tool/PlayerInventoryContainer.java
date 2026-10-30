@@ -14,7 +14,6 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -111,7 +110,7 @@ public class PlayerInventoryContainer extends PlayerContainer {
         }
     }
 
-    private static @NotNull RadioList createHotbarButton(BiConsumer<Integer, Button> adder, PlayerActionPack ap) {
+    private static RadioList createHotbarButton(BiConsumer<Integer, Button> adder, PlayerActionPack ap) {
         List<Button> hotBarList = new ArrayList<>();
         for (int i = 0; i < 9; i++) {
             Component hotBarComponent = TranslationUtil.trans("silicone_dolls.button.hotbar", i + 1)
