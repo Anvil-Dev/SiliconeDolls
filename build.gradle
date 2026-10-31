@@ -163,3 +163,14 @@ idea {
 lombok {
     version = "1.18.34"
 }
+
+dependencies {
+    testImplementation platform('org.junit:junit-bom:5.11.4')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testImplementation 'com.mojang:brigadier:1.3.10'
+    testImplementation 'com.mojang:authlib:6.0.54'
+    testImplementation 'com.google.code.gson:gson:2.10.1'
+    testImplementation 'com.google.guava:guava:32.1.2-jre'
+}
+tasks.withType(Test).configureEach { useJUnitPlatform() }
+tasks.named('jar') { from('COPYING', 'COPYING.LESSER') }
