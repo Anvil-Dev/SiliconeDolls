@@ -13,7 +13,7 @@ public class CombatManager {
     }
 
     public static @Nullable LiteralArgumentBuilder<CommandSourceStack> loadYSMCombat(CommandDispatcher<CommandSourceStack> dispatcher) {
-        if (!CombatManager.isLoaded("yes_steve_model")) return null;
+        if (!CombatManager.isLoaded("ysm") && !CombatManager.isLoaded("yes_steve_model")) return null;
         ClassLoader loader = SiliconeDolls.class.getClassLoader();
         try {
             Class<?> modelCommand = loader.loadClass("dev.anvilcraft.rg.sd.combat.ysm.ModelCommand");
