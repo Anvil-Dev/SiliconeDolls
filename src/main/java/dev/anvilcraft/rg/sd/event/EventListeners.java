@@ -29,6 +29,7 @@ import net.neoforged.neoforge.event.RegisterCommandsEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
 import net.neoforged.neoforge.event.server.ServerStartedEvent;
+import net.neoforged.neoforge.event.server.ServerStoppingEvent;
 import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 import org.jetbrains.annotations.NotNull;
 
@@ -42,6 +43,11 @@ import java.util.Map;
 
 @EventBusSubscriber(modid = SiliconeDolls.MODID)
 public class EventListeners {
+    @SubscribeEvent
+    public static void cancelPendingSpawns(ServerStoppingEvent event) {
+        FakePlayer.cancelPending(event.getServer());
+    }
+
     @SubscribeEvent(priority = EventPriority.LOWEST)
     public static void registerCommands(@NotNull RegisterCommandsEvent event) {
         ModCommands.register(event.getDispatcher());

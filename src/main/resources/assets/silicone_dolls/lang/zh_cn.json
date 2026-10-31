@@ -1,4 +1,9 @@
 {
+  "silicone_dolls.commands.tips.spawn_pending": "正在准备假人 %s，无需重复执行",
+  "silicone_dolls.commands.tips.spawn_ready": "假人 %s 已生成",
+  "silicone_dolls.commands.tips.spawn_failed": "假人 %s 生成失败，详情已记录到日志",
+  "silicone_dolls.commands.tips.spawn_already_pending": "%s 已在准备中或当前无法生成",
+  "silicone_dolls.commands.tips.spawn_cancelled": "已取消假人 %s 的待生成请求",
   "rolling_gate.category.silicone_dolls": "硅胶玩偶",
 
   "silicone_dolls.commands.tips.invalid_name": "无效的玩家名称",

@@ -22,6 +22,7 @@ import dev.anvilcraft.rg.sd.init.ModCommands;
 import dev.anvilcraft.rg.sd.util.IServerPlayerInjector;
 import net.minecraft.ChatFormatting;
 import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.network.chat.Component;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.SharedSuggestionProvider;
 import net.minecraft.commands.arguments.DimensionArgument;
@@ -291,7 +292,18 @@ public class PlayerCommand {
             gameMode = player == null ? GameType.CREATIVE : player.gameMode.getGameModeForPlayer();
         boolean flying = false;
         if (player != null) flying = player.getAbilities().flying;
-        return FakePlayer.createFake(server, name, pos, facing, level, gameMode, flying) ? 1 : 0;
+        String requestedName = name;
+        boolean accepted = FakePlayer.createFake(server, name, pos, facing, level, gameMode, flying,
+            created -> source.sendSuccess(() -> Component.translatable(
+                "silicone_dolls.commands.tips.spawn_ready", created.getGameProfile().getName()), false),
+            failure -> {
+                SiliconeDolls.LOGGER.warn("Fake player command failed: {}", requestedName, failure);
+                source.sendFailure(Component.translatable("silicone_dolls.commands.tips.spawn_failed", requestedName));
+            });
+        if (accepted) source.sendSuccess(() -> Component.translatable(
+            "silicone_dolls.commands.tips.spawn_pending", requestedName), false);
+        else source.sendFailure(Component.translatable("silicone_dolls.commands.tips.spawn_already_pending", requestedName));
+        return accepted ? 1 : 0;
     }
 
     public static int shadowPlayer(@NotNull CommandContext<CommandSourceStack> context) {
@@ -311,6 +323,12 @@ public class PlayerCommand {
     }
 
     public static int kill(@NotNull CommandContext<CommandSourceStack> context) {
+        var source = context.getSource();
+        String name = StringArgumentType.getString(context, "name");
+        if (source.hasPermission(Commands.LEVEL_GAMEMASTERS) && FakePlayer.cancelPending(source.getServer(), name)) {
+            source.sendSuccess(() -> Component.translatable("silicone_dolls.commands.tips.spawn_cancelled", name), false);
+            return 1;
+        }
         FakePlayer player = getFakePlayer(context);
         if (player == null) return 0;
         player.kill();
