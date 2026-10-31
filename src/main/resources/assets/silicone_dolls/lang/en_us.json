@@ -1,4 +1,9 @@
 {
+  "silicone_dolls.commands.tips.spawn_pending": "Preparing fake player %s; no need to repeat the command",
+  "silicone_dolls.commands.tips.spawn_ready": "Fake player %s spawned",
+  "silicone_dolls.commands.tips.spawn_failed": "Could not spawn %s; details are in the log",
+  "silicone_dolls.commands.tips.spawn_already_pending": "%s is already pending or unavailable",
+  "silicone_dolls.commands.tips.spawn_cancelled": "Cancelled pending spawn for %s",
   "rolling_gate.category.silicone_dolls": "SILICONE DOLLS",
 
   "silicone_dolls.commands.tips.invalid_name": "Invalid player name",

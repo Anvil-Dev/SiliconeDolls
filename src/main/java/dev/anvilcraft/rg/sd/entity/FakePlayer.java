@@ -1,10 +1,12 @@
 package dev.anvilcraft.rg.sd.entity;
 
 import com.mojang.authlib.GameProfile;
+import dev.anvilcraft.rg.sd.SiliconeDolls;
 import dev.anvilcraft.rg.sd.SiliconeDollsServerRules;
 import dev.anvilcraft.rg.sd.compat.SableCompat;
 import dev.anvilcraft.rg.sd.util.IServerPlayerInjector;
 import net.minecraft.core.BlockPos;
+import net.minecraft.Util;
 import net.minecraft.core.UUIDUtil;
 import net.minecraft.network.DisconnectionDetails;
 import net.minecraft.network.chat.Component;
@@ -39,8 +41,11 @@ import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.function.Consumer;
+import java.util.Locale;
+import java.util.concurrent.CompletionException;
 
 public class FakePlayer extends ServerPlayer {
+    private static final SpawnPreparation<MinecraftServer> SPAWNS = new SpawnPreparation<>();
     public Runnable fixStartingPosition = () -> {
     };
     private final boolean shadow;
@@ -65,46 +70,89 @@ public class FakePlayer extends ServerPlayer {
         boolean flying,
         @NotNull Consumer<FakePlayer> callback
     ) {
-        GameProfileCache.setUsesAuthentication(false);
-        GameProfile gameprofile;
-        try {
-            GameProfileCache profileCache = server.getProfileCache();
-            if (profileCache == null) gameprofile = null;
-            else gameprofile = profileCache.get(username).orElse(null); //findByName  .orElse(null)
-        } finally {
-            GameProfileCache.setUsesAuthentication(server.isDedicatedServer() && server.usesAuthentication());
-        }
-        if (gameprofile == null) {
-            if (!SiliconeDollsServerRules.allowSpawningOfflinePlayers) {
-                return false;
-            } else {
-                gameprofile = new GameProfile(UUIDUtil.createOfflinePlayerUUID(username), username);
-            }
-        }
-        GameProfile finalGP = gameprofile;
+        return createFake(server, username, pos, facing, level, gamemode, flying, callback,
+            failure -> SiliconeDolls.LOGGER.warn("Fake player preparation failed: {}", username, failure));
+    }
+
+    public static boolean createFake(MinecraftServer server, String username, Vec3 pos, Vec2 facing,
+        ServerLevel level, GameType gamemode, boolean flying, Consumer<FakePlayer> callback,
+        Consumer<Throwable> failed) {
+        if (!server.isRunning()) return false;
+        var ticket = SPAWNS.begin(server, username);
+        if (ticket == null) return false;
+        SiliconeDolls.LOGGER.info("SD_SPAWN phase=requested name={}", username);
+        GameProfileCache cache = server.getProfileCache();
+        boolean allowOffline = SiliconeDollsServerRules.allowSpawningOfflinePlayers;
         float yaw = facing.y, pitch = facing.x;
-        SkullBlockEntity.fetchGameProfile(gameprofile.getName()).thenAcceptAsync(p -> {
-            GameProfile current = finalGP;
-            if (p.isPresent()) {
-                current = p.get();
+        var prepared = SpawnPreparation.profile(() -> {
+            // Vanilla may contact Mojang here. Never perform it on the server tick thread,
+            // and never temporarily change the process-wide authentication policy.
+            GameProfile profile = cache == null ? null : cache.get(username).orElse(null);
+            if (profile == null && allowOffline) {
+                String name = username.toLowerCase(Locale.ROOT);
+                profile = new GameProfile(UUIDUtil.createOfflinePlayerUUID(name), name);
             }
-            FakePlayer instance = new FakePlayer(server, level, current, ClientInformation.createDefault(), false);
-            instance.fixStartingPosition = () -> instance.moveTo(pos.x, pos.y, pos.z, yaw, pitch);
-            //noinspection deprecation
-            server.getPlayerList().placeNewPlayer(new FakeClientConnection(PacketFlow.SERVERBOUND), instance, new CommonListenerCookie(current, 0, instance.clientInformation(), false));
-            instance.teleportTo(level, pos.x, pos.y, pos.z, yaw, pitch);
-            instance.setHealth(20.0F);
-            instance.unsetRemoved();
-            AttributeInstance attribute = instance.getAttribute(Attributes.STEP_HEIGHT);
-            if (attribute != null) attribute.setBaseValue(0.6F);
-            instance.gameMode.changeGameModeForPlayer(gamemode);
-            server.getPlayerList().broadcastAll(new ClientboundRotateHeadPacket(instance, (byte) (instance.yHeadRot * 256 / 360)), level.dimension());
-            server.getPlayerList().broadcastAll(new ClientboundTeleportEntityPacket(instance), level.dimension());
-            instance.entityData.set(DATA_PLAYER_MODE_CUSTOMISATION, (byte) 0x7f);
-            callback.accept(instance);
-            instance.getAbilities().flying = flying && instance.getAbilities().mayfly;
-        }, server);
+            if (profile == null) throw new IllegalStateException("No permitted player profile was found");
+            return profile;
+        }, Util.backgroundExecutor(), profile -> !profile.getId().equals(UUIDUtil.createOfflinePlayerUUID(profile.getName()))
+            && !profile.getProperties().containsKey("textures"), profile ->
+            SkullBlockEntity.fetchGameProfile(profile.getId()).handle((skin, error) -> {
+                if (error != null) {
+                    SiliconeDolls.LOGGER.warn("Skin lookup failed; keeping resolved player identity: {}", username, error);
+                    return profile;
+                }
+                return skin.filter(p -> p.getId().equals(profile.getId())).orElse(profile);
+            }));
+        prepared.whenComplete((profile, error) -> {
+            if (!SPAWNS.current(ticket)) return;
+            SiliconeDolls.LOGGER.info("SD_SPAWN phase=prepared name={} elapsedMs={} failed={}", username,
+                (System.nanoTime() - ticket.startedNanos()) / 1_000_000L, error != null);
+            server.tell(new TickTask(server.getTickCount(), () -> {
+                if (!SPAWNS.current(ticket)) return;
+                try {
+                    if (!server.isRunning() || server.getLevel(level.dimension()) != level) return;
+                    if (error != null) {
+                        failed.accept(error instanceof CompletionException && error.getCause() != null ? error.getCause() : error);
+                        return;
+                    }
+                    if (server.getPlayerList().getPlayerByName(username) != null
+                        || server.getPlayerList().getPlayer(profile.getId()) != null) {
+                        failed.accept(new IllegalStateException("A player with this identity is already present"));
+                        return;
+                    }
+                    FakePlayer instance = new FakePlayer(server, level, profile, ClientInformation.createDefault(), false);
+                    instance.fixStartingPosition = () -> instance.moveTo(pos.x, pos.y, pos.z, yaw, pitch);
+                    //noinspection deprecation
+                    server.getPlayerList().placeNewPlayer(new FakeClientConnection(PacketFlow.SERVERBOUND), instance, new CommonListenerCookie(profile, 0, instance.clientInformation(), false));
+                    instance.teleportTo(level, pos.x, pos.y, pos.z, yaw, pitch);
+                    instance.setHealth(20.0F);
+                    instance.unsetRemoved();
+                    AttributeInstance attribute = instance.getAttribute(Attributes.STEP_HEIGHT);
+                    if (attribute != null) attribute.setBaseValue(0.6F);
+                    instance.gameMode.changeGameModeForPlayer(gamemode);
+                    server.getPlayerList().broadcastAll(new ClientboundRotateHeadPacket(instance, (byte) (instance.yHeadRot * 256 / 360)), level.dimension());
+                    server.getPlayerList().broadcastAll(new ClientboundTeleportEntityPacket(instance), level.dimension());
+                    instance.entityData.set(DATA_PLAYER_MODE_CUSTOMISATION, (byte) 0x7f);
+                    callback.accept(instance);
+                    instance.getAbilities().flying = flying && instance.getAbilities().mayfly;
+                    SiliconeDolls.LOGGER.info("SD_SPAWN phase=placed name={} elapsedMs={}", username,
+                        (System.nanoTime() - ticket.startedNanos()) / 1_000_000L);
+                } catch (Exception failure) {
+                    failed.accept(failure);
+                } finally {
+                    SPAWNS.finish(ticket);
+                }
+            }));
+        });
         return true;
+    }
+
+    public static boolean cancelPending(MinecraftServer server, String name) {
+        return SPAWNS.cancel(server, name);
+    }
+
+    public static void cancelPending(MinecraftServer server) {
+        SPAWNS.cancelAll(server);
     }
 
     @SuppressWarnings("UnusedReturnValue")

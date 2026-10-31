@@ -35,20 +35,27 @@ public class FakePlayerResident {
             PlayerActionPack actionPack = ((IServerPlayerInjector) player).getActionPack();
             fakePlayer.add("actions", SiliconeDolls.GSON.toJsonTree(actionPack));
         }
+        fakePlayer.add("profile", ResidentProfileSnapshot.save(player.getGameProfile()));
         return fakePlayer;
     }
 
     public static void createFake(String username, @NotNull MinecraftServer server, final JsonObject actions) {
+        createFake(username, server, actions, null);
+    }
+
+    public static void createFake(String username, @NotNull MinecraftServer server, final JsonObject actions,
+                                  GameProfile savedProfile) {
         GameProfileCache.setUsesAuthentication(false);
         GameProfile gameprofile;
         try {
             GameProfileCache profileCache = server.getProfileCache();
-            if (profileCache == null) {
-                return;
-            }
-            gameprofile = profileCache.get(username).orElse(null);
+            gameprofile = profileCache == null ? null : profileCache.get(username).orElse(null);
         } finally {
             GameProfileCache.setUsesAuthentication(server.isDedicatedServer() && server.usesAuthentication());
+        }
+        if (savedProfile != null && (gameprofile == null || savedProfile.getId().equals(gameprofile.getId())
+                || gameprofile.getId().equals(UUIDUtil.createOfflinePlayerUUID(gameprofile.getName())))) {
+            gameprofile = savedProfile;
         }
         if (gameprofile == null) {
             if (!SiliconeDollsServerRules.allowSpawningOfflinePlayers) {
@@ -58,11 +65,16 @@ public class FakePlayerResident {
             gameprofile = new GameProfile(UUIDUtil.createOfflinePlayerUUID(username), username);
         }
         GameProfile finalGameprofile = gameprofile;
-        SkullBlockEntity.fetchGameProfile(gameprofile.getName()).thenAcceptAsync((p) -> {
-            GameProfile current = finalGameprofile;
-            if (p.isPresent()) {
-                current = p.get();
-            }
+        ServerLevel originalLevel = server.overworld();
+        if (originalLevel == null) return;
+        SkullBlockEntity.fetchGameProfile(gameprofile.getName())
+            .handle((profile, failure) -> failure == null && profile != null ? profile : java.util.Optional.<GameProfile>empty())
+            .thenAcceptAsync((p) -> {
+            if (!server.isRunning() || server.getLevel(originalLevel.dimension()) != originalLevel) return;
+            GameProfile current = savedProfile == null ? p.orElse(finalGameprofile)
+                    : ResidentProfileSnapshot.preferAvailableSkin(finalGameprofile, p);
+            if (server.getPlayerList().getPlayerByName(username) != null
+                    || server.getPlayerList().getPlayer(current.getId()) != null) return;
             FakePlayer playerMPFake = FakePlayer.create(server, server.overworld(), current, ClientInformation.createDefault(), false);
             //noinspection deprecation
             server.getPlayerList().placeNewPlayer(new FakeClientConnection(PacketFlow.SERVERBOUND), playerMPFake,
@@ -87,6 +99,7 @@ public class FakePlayerResident {
         if (SiliconeDollsServerRules.fakePlayerReloadAction && fakePlayer.has("actions")) {
             actions = fakePlayer.get("actions").getAsJsonObject();
         }
-        FakePlayerResident.createFake(username, server, actions);
+        var savedProfile = ResidentProfileSnapshot.restore(username, fakePlayer.get("profile")).orElse(null);
+        FakePlayerResident.createFake(username, server, actions, savedProfile);
     }
 }
