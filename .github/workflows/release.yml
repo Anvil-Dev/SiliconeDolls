@@ -20,7 +20,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: Anvil-Dev/RollingGate
-          ref: releases/1.21.11
+          ref: releases/26.1.2
           path: .dependencies/RollingGate
 
       - name: validate gradle wrapper
@@ -86,7 +86,7 @@ jobs:
           version: ${{ steps.version.outputs.version }}
           game-versions: ${{ steps.properties.outputs.minecraft_version }}
           version-type: ${{ env.VERSION_TYPE }}
-          java: 21
+          java: 25
           fail-mode: skip
           changelog: ${{ github.event.release.body }}
           dependencies: |

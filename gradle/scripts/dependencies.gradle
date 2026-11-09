@@ -1,5 +1,5 @@
 dependencies {
     // Rolling Gate
     implementation "dev.anvilcraft.rg:RollingGate:${rolling_gate_version}"
-    compileOnly "com.teammetallurgy.aquaculture:aquaculture2_1.21.5:1.21.5-${aquaculture_version}"
+    compileOnly "maven.modrinth:aquaculture:2.9.2-neoforge,26.1.2"
 }

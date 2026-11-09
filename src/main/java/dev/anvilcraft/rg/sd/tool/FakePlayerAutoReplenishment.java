@@ -7,6 +7,8 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.ItemContainerContents;
 
+import java.util.List;
+
 public class FakePlayerAutoReplenishment {
     public static void autoReplenishment(Player fakePlayer) {
         NonNullList<ItemStack> itemStackList = fakePlayer.getInventory().getNonEquipmentItems();
@@ -56,7 +58,8 @@ public class FakePlayerAutoReplenishment {
         ItemContainerContents contents = shulkerBox.get(DataComponents.CONTAINER);
         if (contents == null) return 0;
         // 潜影盒没有容器组件
-        for (ItemStack stack : contents.nonEmptyItems()) {
+        List<ItemStack> stacks = contents.allItemsCopyStream().toList();
+        for (ItemStack stack : stacks) {
             if (ItemStack.isSameItemSameComponents(itemStack, stack)) {
                 int temp;
                 if (stack.getCount() >= count) {
@@ -66,6 +69,7 @@ public class FakePlayerAutoReplenishment {
                     temp = stack.getCount();
                     stack.setCount(0);
                 }
+                shulkerBox.set(DataComponents.CONTAINER, ItemContainerContents.fromItems(stacks));
                 ifIsEmptyClear(shulkerBox);
                 return temp;
             }
